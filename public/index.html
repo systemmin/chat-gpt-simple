@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Event Stream Demo</title>
+		<style type="text/css">
+			body {
+				/* font-family: Arial, sans-serif; */
+				/* text-align: start; */
+			}
+
+			#event-stream-data {
+				margin: 50px auto;
+				max-width: 1200px;
+				border: 1px solid #ccc;
+				padding: 10px;
+			}
+		</style>
+		<link rel="stylesheet" href="/css/default.min.css">
+		<link rel="stylesheet" href="/css/monokai-sublime.css">
+	</head>
+
+	<body>
+		<div id="event-stream-data">
+			<textarea id="msg" style="height: 500px;width: 100%;"></textarea>
+		</div>
+		<div id="content">
+
+		</div>
+		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+		<script>
+			const el = document.getElementById('event-stream-data');
+			// 清空dom
+			function deleteChild() {
+				var e = document.querySelector("#event-stream-data");
+				var first = e.firstElementChild;
+				while (first) {
+					first.remove();
+					first = e.firstElementChild;
+				}
+			}
+			// 解析数据
+			function parseData(data, temp, context, res) {
+				let result = [];
+				const strings = data.split('data:');
+				for (const d of strings) {
+					if (d.includes('DONE')) {
+						console.log('结束：', d);
+						result.push('DONE')
+						return {
+							result,
+							temp: '',
+							context
+						};
+					}
+					let text = temp + d;
+					text = text.trim();
+					const s = text.indexOf('{');
+					const e = text.lastIndexOf('}');
+					if (e !== -1 && s !== -1) {
+						// 匹配成功输出
+						let rest = text.substring(s, e + 1);
+						rest = rest.replace(/\n/g, '');
+						let ct = JSON.parse(rest);
+						context += ct.choices[0].delta.content;
+						result.push(rest);
+						// 清空
+						temp = '';
+					} else {
+						// 匹配失败累加
+						temp += d;
+					}
+				}
+				return {
+					result,
+					temp,
+					context
+				};
+			}
+			let temp = '',
+				context = '';
+			// 处理消息
+			function handleEventStreamMessage(event) {
+				const eventText = event.data;
+				const d = parseData(eventText, temp, context);
+				temp = d.temp;
+				context = d.context;
+				displayEvent(context);
+			}
+			// md 转 dom 解析 html 高亮
+			function displayEvent(context) {
+				deleteChild()
+				el.innerHTML = marked.parse(context);
+				let blocks = el.querySelectorAll("pre code");
+				blocks.forEach(block => {
+					hljs.highlightBlock(block);
+				});
+			}
+
+			// 发起请求
+			function connectToEventStream() {
+				fetch('/events/')
+					.then(response => {
+						const reader = response.body.getReader();
+						// const decoder = new TextDecoder();
+						// 将响应解析为 text/event-stream 格式
+						const decoder = new TextDecoder('utf-8');
+
+						function readStream() {
+							return reader.read()
+								.then(({
+									done,
+									value
+								}) => {
+									if (!done) {
+										const chunk = decoder.decode(value);
+										handleEventStreamMessage({
+											data: chunk
+										});
+										return readStream();
+									}
+								});
+						}
+						return readStream();
+					})
+					.catch(error => {
+						console.error('Error occurred while fetching event stream:', error);
+					});
+			}
+			connectToEventStream();
+		</script>
+	</body>
+</html>
