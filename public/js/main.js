@@ -1,34 +1,42 @@
-let el = undefined;
-// 清空dom
-let el_id = '';
-// 
-let loading = false;
-
+let temp = '',
+	pid = undefined,
+	loading = false,
+	el = undefined,
+	el_id = undefined,
+	content = '';
+// marked setting 控制台警告信息
+marked.options({
+	headerIds: false,
+	mangle: false
+})
 // 系统
-const systemMessage = {
+let systemMessage = {
 	"role": "system",
 	"content": "你是个乐于助人的助手。"
 };
 
-const userMessage = [
+let userMessage = [
 
 ];
 
-function deleteChild() {
-	el = document.getElementById(el_id);
-	var first = el.firstElementChild;
+/**
+ * @param {Object} el_id 清空指定节点下内容
+ */
+function deleteChild(el_id) {
+	const del_el = document.getElementById(el_id);
+	var first = del_el.firstElementChild;
 	while (first) {
 		first.remove();
-		first = el.firstElementChild;
+		first = del_el.firstElementChild;
 	}
 }
 
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    var r = Math.random() * 16 | 0,
-        v = c === 'x' ? r : (r & 0x3 | 0x8);
-    return v.toString(16);
-  });
+	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+		var r = Math.random() * 16 | 0,
+			v = c === 'x' ? r : (r & 0x3 | 0x8);
+		return v.toString(16);
+	});
 }
 
 
@@ -70,25 +78,26 @@ function parseData(data, temp, content, res) {
 		content
 	};
 }
-let temp = '',
-	content = '';
+
 // 处理消息
 function handleEventStreamMessage(event) {
 	const eventText = event.data;
 	const d = parseData(eventText, temp, content);
 	temp = d.temp;
 	content = d.content;
-	// console.log(d.result)
 	displayEvent(content);
 }
 // md 转 dom 解析 html 高亮
 function displayEvent(content) {
-	deleteChild()
-	el.innerHTML = marked.parse(content);
-	let blocks = el.querySelectorAll("pre code");
-	blocks.forEach(block => {
-		hljs.highlightBlock(block);
-	});
+	deleteChild(el_id)
+	if (content) {
+		el.innerHTML = marked.parse(content);
+		let blocks = el.querySelectorAll("pre code");
+		blocks.forEach(block => {
+			hljs.highlightBlock(block);
+		});
+	}
+
 }
 const postData = {
 	messages: [
@@ -103,28 +112,39 @@ const options = {
 	},
 	// signal: controller.signal
 };
-// 发起请求
-function connectToEventStream(id,value) {
-	el_id = id;
+// 
+
+/**
+ * @description 发起请求
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ * 
+ * @param {String} id 用户消息 id
+ * @param {String} aid 助手消息 id
+ * @param {String} value 发送内容
+ */
+function connectToEventStream(id, aid, value) {
+	el_id = aid;
+	el = document.getElementById(aid);
 	temp = '';
 	content = '';
 	loading = true;
-	const textarea = document.getElementById('prompt-textarea');
 	userMessage.push({
 		role: 'user',
-		content: value
+		content: value,
+		id,
 	})
-	
+
 	const postData = {
 		messages: [
 			systemMessage,
 			...userMessage,
 		]
 	};
-	options.body=JSON.stringify(postData);
-	
-	
-	fetch('/events/', options)
+	options.body = JSON.stringify(postData);
+
+	// console.log(options)
+	fetch('/events/v2/', options)
 		.then(response => {
 			const reader = response.body.getReader();
 			// const decoder = new TextDecoder();
@@ -148,8 +168,10 @@ function connectToEventStream(id,value) {
 							// 助手返回信息
 							userMessage.push({
 								role: 'assistant',
-								content: content
-							})
+								content: content,
+								id: aid
+							});
+							saveRecord();
 							document.getElementById('prompt-textarea').disabled = false;
 							document.getElementById('sendMsg').disabled = false;
 							console.log(userMessage);
@@ -162,3 +184,178 @@ function connectToEventStream(id,value) {
 			console.error('Error occurred while fetching event stream:', error);
 		});
 }
+
+/**
+ * @description 保存数据到本地
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ * 
+ * @param {String} id dom id
+ * @param {String} role 角色：user,system
+ */
+const createHtml = (id, role) => {
+	if (document.getElementById(id)) {
+		return;
+	}
+	const roleDiv = document.createElement('div');
+	roleDiv.className = role
+
+	const contentDiv = document.createElement('div');
+	contentDiv.className = 'content'
+
+	const span = document.createElement('span');
+	span.className = 'icon';
+	span.style.backgroundColor = role === 'user' ? '#4f2ba6' : '#19c37d';
+	span.innerText = role === 'user' ? 'M' : 'S'
+	const idDiv = document.createElement('div');
+
+	idDiv.id = id;
+	contentDiv.append(span);
+	contentDiv.append(idDiv);
+	roleDiv.append(contentDiv)
+	return roleDiv
+}
+const createSystemHtml = (id) => createHtml(id, 'system');
+const createUserHtml = (id) => createHtml(id, 'user');
+
+
+/**
+ * @description 保存数据到本地
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ */
+const saveRecord = () => {
+	const obj = localStorage.getItem('list');
+	const list = obj ? JSON.parse(obj) : [];
+	if (!pid) {
+		pid = generateUUID();
+	}
+	if (list.length === 0) {
+		const data = {
+			title: userMessage[0].content,
+			pid,
+			list: userMessage
+		}
+		localStorage.setItem('list', JSON.stringify([data]))
+	} else {
+		let currentData = undefined;
+		for (var i = 0; i < list.length; i++) {
+			let item = list[i];
+			if (item.pid === pid) {
+				currentData = item;
+				continue;
+			}
+		}
+		if (currentData) {
+			for (const msg of userMessage) {
+				currentData.list.push(msg)
+			}
+			localStorage.setItem('list', JSON.stringify(list))
+		} else {
+			const data = {
+				title: userMessage[0].content,
+				pid,
+				list: userMessage
+			}
+			list.push(data);
+			localStorage.setItem('list', JSON.stringify(list))
+		}
+	}
+}
+
+/**
+ * 
+ * @description 加载聊天记录侧边栏记录
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ * 
+ */
+const loadRecod = () => {
+	let template = '';
+	const obj = localStorage.getItem('list');
+	const list = obj ? JSON.parse(obj) : [];
+	if (list) {
+		list.forEach(item => {
+			template += `
+			<div class="record" data-id="${item.pid}">
+				<div><span >Ⓜ</span>️</div>
+				<div class="detail"  data-id="${item.pid}">${item.title}</div>
+				<div><span class="export" data-id="${item.pid}">💾</span><span class="delete" data-id="${item.pid}">⛔</span></div>
+			</div>
+			`;
+		})
+		// 追加
+		document.getElementById('session-list').innerHTML = template;
+	}
+}
+
+/**
+ * 
+ * @description 创建 dom 节点，渲染 html，高亮
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ * 
+ * @param {String} list 消息详情列表数据
+ */
+const renderingHtml = (list) => {
+	const els = document.getElementById('list-msg'); //
+	list.forEach(item => {
+		let s1
+		if (item.role === 'user') {
+			s1 = createUserHtml(item.id);
+		} else {
+			s1 = createSystemHtml(item.id);
+		}
+		els.append(s1)
+		document.getElementById(item.id).innerHTML = marked.parse(item.content);;
+	})
+	let blocks = els.querySelectorAll("pre code");
+	blocks.forEach(block => {
+		hljs.highlightBlock(block);
+	});
+}
+
+
+/**
+ * 
+ * @description 从本地缓存加载数据
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ * 
+ * @param {String} pid 消息列表 id 
+ */
+const loadDetail = (pid) => {
+	const obj = localStorage.getItem('list');
+	const list = obj ? JSON.parse(obj) : [];
+	deleteChild('list-msg'); // 清空节点
+	list.forEach(item => {
+		if (item.pid === pid) {
+			renderingHtml(item.list)
+		}
+	})
+}
+
+
+/**
+ * 
+ * @description 动态监听 click 事件
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ */
+document.addEventListener('click', (event) => {
+	console.log(event)
+	const className = event.target.className;
+	console.log(className);
+	const did = event.target.dataset.id
+	if (className === 'export') {
+		console.log('导出')
+	} else if (className === 'delete') {
+		console.log('删除')
+	} else if (className === 'detail') {
+		console.log('详情')
+		pid = did
+		console.log('pid', pid)
+		console.log('did', did)
+		loadDetail(did)
+	}
+})
