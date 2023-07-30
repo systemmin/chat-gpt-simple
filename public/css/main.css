@@ -1,0 +1,172 @@
+	body {
+		/* font-family: Arial, sans-serif; */
+		/* text-align: start; */
+	}
+
+
+	* {
+		margin: 0px;
+		padding: 0px;
+	}
+
+	p,ol {
+		margin-bottom: 1.25em;
+		margin-top: 1.25em;
+	}
+	
+
+
+	#createSession {
+		border: 1px solid #525355;
+		padding: 10px;
+		margin: 10px;
+		border-radius: 5px;
+		text-align: justify;
+		cursor: pointer;
+	}
+
+	#main {
+		display: flex;
+	}
+
+	#left {
+		flex: 0 0 250px;
+		height: 100vh;
+		background-color: #202123;
+		color: #ececf1;
+	}
+
+	#right {
+		flex: 1;
+		height: 100vh;
+		background-color: aliceblue;
+		overflow: auto;
+	}
+
+	#top {
+		text-align: center;
+		padding: 10px 0px;
+		font-size: 18px;
+		background-color: #fff;
+		font-weight: 400;
+		border-bottom: 1px solid #ececf1;
+		position: relative;
+		top: 0px;
+		right: 0px;
+	}
+
+	.user {
+		background-color: #fff;
+	}
+
+	.system {
+		background-color: #f7f7f8;
+	}
+
+	.content {
+		display: flex;
+		gap: 20px;
+		max-width: 48rem;
+		margin: 0px auto;
+	}
+
+	.content div:first-child {
+		flex-shrink: 0;
+		align-items: flex-end;
+	}
+
+	.content div:last-child {
+		width: calc(100% - 115px);
+	}
+
+	.icon {
+		color: #fff;
+		width: 34px;
+		display: block;
+		height: 34px;
+		text-align: center;
+		line-height: 34px;
+		font-size: 23px;
+		font-weight: 400;
+		margin-bottom: 1.25em;
+		margin-top: 1.25em;
+	}
+
+	#send {
+		/* max-width: 48rem; */
+		box-shadow: 0 0 15px rgba(0, 0, 0, .1);
+		border-radius: 10px;
+		padding: 10px;
+		background-color: #fff;
+		position: fixed;
+		left: 36%;
+		bottom: 10px;
+		width: 40%;
+		display: flex;
+		gap: 10px;
+		align-items: flex-end;
+	}
+
+	#send div:first-child {
+		flex: 1;
+	}
+
+	#send div:last-child {
+		flex: 0 0 53px;
+	}
+
+	button {
+		cursor: pointer;
+		border: none;
+		margin: 10px;
+		background-color: #fff;
+	}
+
+	button:hover {
+		background-color: #19c37d;
+	}
+
+	#prompt-textarea {
+		width: 100%;
+		outline: none;
+		border: none;
+		font-size: 18px;
+		resize: none
+	}
+
+	#list-msg {
+		margin-bottom: 100px;
+	}
+
+	.record {
+		display: flex;
+		margin: 15px 0px 15px 10px;
+		padding: 15px 5px;
+		cursor: pointer;
+		border-radius: 5px;
+		gap: 5px;
+	}
+
+	.record:hover {
+		background-color: #2a2b32;
+	}
+
+	.record:active {
+		background-color: #343541;
+	}
+
+	.record div:first-child {
+		flex: 0 0 24px;
+	}
+
+	.record div:last-child {
+		flex: 0 0 48px
+	}
+
+	.record div:nth-child(2) {
+		flex: 1;
+		justify-self: start;
+		overflow: hidden;
+		white-space: nowrap;
+		max-width: 164px;
+	}
