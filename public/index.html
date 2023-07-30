@@ -9,11 +9,124 @@
 				/* text-align: start; */
 			}
 
-			#event-stream-data {
-				margin: 50px auto;
-				max-width: 1200px;
-				border: 1px solid #ccc;
+			* {
+				margin: 0px;
+				padding: 0px;
+			}
+
+			p {
+				margin-bottom: 1.25em;
+				margin-top: 1.25em;
+			}
+
+
+			#main {
+				display: flex;
+			}
+
+			#left {
+				flex: 0 0 250px;
+				height: 100vh;
+				background-color: #202123;
+				color: #ececf1;
+			}
+
+			#right {
+				flex: 1;
+				height: 100vh;
+				background-color: aliceblue;
+				overflow: auto;
+			}
+
+			#top {
+				text-align: center;
+				padding: 10px 0px;
+				font-size: 18px;
+				background-color: #fff;
+				font-weight: 400;
+				border-bottom: 1px solid #ececf1;
+				position: relative;
+				top: 0px;
+				right: 0px;
+			}
+
+			.user {
+				background-color: #fff;
+			}
+
+			.system {
+				background-color: #f7f7f8;
+			}
+
+			.content {
+				display: flex;
+				gap: 20px;
+				max-width: 48rem;
+				margin: 0px auto;
+			}
+
+			.content div:first-child {
+				flex-shrink: 0;
+				align-items: flex-end;
+			}
+
+			.content div:last-child {
+				width: calc(100% - 115px);
+			}
+
+			.icon {
+				color: #fff;
+				width: 34px;
+				display: block;
+				height: 34px;
+				text-align: center;
+				line-height: 34px;
+				font-size: 23px;
+				font-weight: 400;
+				margin-bottom: 1.25em;
+				margin-top: 1.25em;
+			}
+
+			#send {
+				/* max-width: 48rem; */
+				box-shadow: 0 0 15px rgba(0, 0, 0, .1);
+				border-radius: 10px;
 				padding: 10px;
+				background-color: #fff;
+				position: fixed;
+				left: 36%;
+				bottom: 10px;
+				width: 40%;
+				display: flex;
+				gap: 10px;
+				align-items: flex-end;
+			}
+
+			#send div:first-child {
+				flex: 1;
+			}
+
+			#send div:last-child {
+				flex: 0 0 53px;
+			}
+
+			button {
+				cursor: pointer;
+				border: none;
+				margin: 10px;
+				background-color: #fff;
+			}
+
+			button:hover {
+				background-color: #19c37d;
+			}
+
+			#prompt-textarea {
+				width: 100%;
+				outline: none;
+				border: none;
+				font-size: 18px;
+				resize: none
 			}
 		</style>
 		<link rel="stylesheet" href="/css/default.min.css">
@@ -21,114 +134,104 @@
 	</head>
 
 	<body>
-		<div id="event-stream-data">
-			<textarea id="msg" style="height: 500px;width: 100%;"></textarea>
-		</div>
-		<div id="content">
+		<div id="main">
+			<div id="left">left</div>
+			<div id="right">
+				<div id="main-body">
+					<div id="top">简易版Chat-GPT</div>
+					<div id="list-msg">
+						<!-- <div class="user">
+							<div class="content">
+								<div>
+									<span class="icon " style="background-color: #4f2ba6;">M</span>
+								</div>
+								<div>
+									<p>内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容</p>
+								</div>
+							</div>
+						</div>
+						<div class="system">
+							<div class="content">
+								<div><span class="icon" style="background-color: #19c37d;">S</span></div>
+								<div id="event-stream-data">
 
+								</div>
+							</div>
+						</div> -->
+					</div>
+
+				</div>
+				<div id="send">
+					<div>
+						<textarea id="prompt-textarea"></textarea>
+					</div>
+					<div>
+						<button id="sendMsg"  onclick="sendMsg()"><img src="/img/send.png" width="25px"></button>
+					</div>
+				</div>
+				<div style="height: 52px;">
+					<div class="icon-container"></div>
+				</div>
+			</div>
 		</div>
+
 		<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
 		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+		<script src="js/main.js"></script>
 		<script>
-			const el = document.getElementById('event-stream-data');
-			// 清空dom
-			function deleteChild() {
-				var e = document.querySelector("#event-stream-data");
-				var first = e.firstElementChild;
-				while (first) {
-					first.remove();
-					first = e.firstElementChild;
-				}
-			}
-			// 解析数据
-			function parseData(data, temp, context, res) {
-				let result = [];
-				const strings = data.split('data:');
-				for (const d of strings) {
-					if (d.includes('DONE')) {
-						console.log('结束：', d);
-						result.push('DONE')
-						return {
-							result,
-							temp: '',
-							context
-						};
-					}
-					let text = temp + d;
-					text = text.trim();
-					const s = text.indexOf('{');
-					const e = text.lastIndexOf('}');
-					if (e !== -1 && s !== -1) {
-						// 匹配成功输出
-						let rest = text.substring(s, e + 1);
-						rest = rest.replace(/\n/g, '');
-						let ct = JSON.parse(rest);
-						context += ct.choices[0].delta.content;
-						result.push(rest);
-						// 清空
-						temp = '';
-					} else {
-						// 匹配失败累加
-						temp += d;
-					}
-				}
-				return {
-					result,
-					temp,
-					context
-				};
-			}
-			let temp = '',
-				context = '';
-			// 处理消息
-			function handleEventStreamMessage(event) {
-				const eventText = event.data;
-				const d = parseData(eventText, temp, context);
-				temp = d.temp;
-				context = d.context;
-				displayEvent(context);
-			}
-			// md 转 dom 解析 html 高亮
-			function displayEvent(context) {
-				deleteChild()
-				el.innerHTML = marked.parse(context);
-				let blocks = el.querySelectorAll("pre code");
-				blocks.forEach(block => {
-					hljs.highlightBlock(block);
-				});
-			}
+			const sendMsg = () => {
+				document.getElementById('prompt-textarea').disabled=!loading;
+				document.getElementById('sendMsg').disabled=!loading;
+				
+				console.log('开始', loading)
+				const els = document.getElementById('list-msg'); //
+				const el = document.getElementById('prompt-textarea');
+				console.log(el.value)
 
-			// 发起请求
-			function connectToEventStream() {
-				fetch('/events/')
-					.then(response => {
-						const reader = response.body.getReader();
-						// const decoder = new TextDecoder();
-						// 将响应解析为 text/event-stream 格式
-						const decoder = new TextDecoder('utf-8');
+				let num1 = Math.random(100000) + "";
+				let suffix1 = num1.split('\.')[1];
+				let id1 = 'msg' + suffix1;
+				let s1 = createUserHtml(id1);
+				els.append(s1)
+				const elss = document.getElementById(id1); //
+				elss.innerHTML = marked.parse(el.value);;
 
-						function readStream() {
-							return reader.read()
-								.then(({
-									done,
-									value
-								}) => {
-									if (!done) {
-										const chunk = decoder.decode(value);
-										handleEventStreamMessage({
-											data: chunk
-										});
-										return readStream();
-									}
-								});
-						}
-						return readStream();
-					})
-					.catch(error => {
-						console.error('Error occurred while fetching event stream:', error);
-					});
+				el.value = ""
+				let num = Math.random(100000) + "";
+				let suffix = num.split('\.')[1];
+				let id = 'msg' + suffix;
+				let s = createSystemHtml(id);
+				els.append(s)
+				connectToEventStream(id);
+				console.log('结束', loading)
 			}
-			connectToEventStream();
+			/**
+			 * 创建 dom
+			 */
+			const createHtml = (id, role) => {
+				if (document.getElementById(id)) {
+					return;
+				}
+				const roleDiv = document.createElement('div');
+				roleDiv.className = role
+
+				const contentDiv = document.createElement('div');
+				contentDiv.className = 'content'
+
+				const span = document.createElement('span');
+				span.className = 'icon';
+				span.style.backgroundColor = role === 'user' ? '#4f2ba6' : '#19c37d';
+				span.innerText = role === 'user' ? 'M' : 'S'
+				const idDiv = document.createElement('div');
+
+				idDiv.id = id;
+				contentDiv.append(span);
+				contentDiv.append(idDiv);
+				roleDiv.append(contentDiv)
+				return roleDiv
+			}
+			const createSystemHtml = (id) => createHtml(id, 'system');
+			const createUserHtml = (id) => createHtml(id, 'user');
 		</script>
 	</body>
 </html>
