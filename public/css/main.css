@@ -70,16 +70,16 @@
 		margin: 0px auto;
 	}
 
-	.content div:first-child {
+	.content>div:first-child {
 		flex-shrink: 0;
 		align-items: flex-end;
 	}
 
-	.content div:last-child {
+	.content>div:last-child {
 		width: calc(100% - 115px);
 	}
 
-	.icon {
+	span.icon {
 		color: #fff;
 		width: 34px;
 		display: block;
@@ -88,8 +88,8 @@
 		line-height: 34px;
 		font-size: 23px;
 		font-weight: 400;
+		margin-top: 23px;
 		margin-bottom: 1.25em;
-		margin-top: 1.25em;
 	}
 
 	#send {

@@ -9,6 +9,9 @@ marked.options({
 	headerIds: false,
 	mangle: false
 })
+// hljs 拷贝插件
+hljs.addPlugin(new CopyButtonPlugin());
+
 // 系统
 let systemMessage = {
 	"role": "system",
@@ -143,7 +146,7 @@ function connectToEventStream(id, aid, value) {
 	options.body = JSON.stringify(postData);
 
 	// console.log(options)
-	fetch('/events/', options)
+	fetch('/events/v2/', options)
 		.then(response => {
 			const reader = response.body.getReader();
 			// const decoder = new TextDecoder();
@@ -374,6 +377,25 @@ const exportRecord = (id) => {
 	downloadLink.click();
 }
 
+/**
+ * 
+ * @description 侧边栏激活样式
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ * 
+ * @param {String} id 消息列表 id 
+ */
+const activeSide = (id) => {
+	const els = document.querySelectorAll('.record');
+	for (const el of els) {
+		if (el.getAttribute('data-id') === id) {
+			el.style.backgroundColor = '#343541';
+		} else {
+			el.style.backgroundColor = '#202123';
+		}
+	}
+}
+
 let showButton = false;
 const mainEl = document.getElementById('right');
 const handleScroll = () => {
@@ -427,5 +449,6 @@ document.addEventListener('click', (event) => {
 		console.log('pid', pid)
 		console.log('did', did)
 		loadDetail(did)
+		activeSide(did)
 	}
 })
