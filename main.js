@@ -4,11 +4,38 @@ const express = require('express');
 const fetch = require('node-fetch');
 require('dotenv').config()
 const app = express();
+
+/**
+ * 
+ * 解析获取 json 数据
+ */
+const bodyParser = require('body-parser');
+const json = express.json({
+	type: '*/json'
+});
+
+app.use(json);
+app.use(bodyParser.urlencoded({
+	extended: false
+}));
+
+/**
+ * AbortController 接口表示一个控制器对象，允许你根据需要中止一个或多个 Web 请求
+ * AbortController.signal 只读返回一个 AbortSignal 对象实例，它可以用来 with/abort 一个 Web（网络）请求。
+ * AbortController.abort() 中止一个尚未完成的 Web（网络）请求。这能够中止 fetch 请求及任何响应体的消费和流。
+ */
+const AbortController = globalThis.AbortController
+let controller = new AbortController();
+let sendFlag = false;
+/**
+ * 常量
+ */
 const port = process.env.PORT || 8080;
 const url = process.env.API_URL || 'https://api.openai.com';
 const data_path = process.env.DIR_PATH;
 const key = process.env.API_KEY;
-
+const debug = !process.env.DEBUG || false;
+const debug_data = !process.env.DEBUG_ROW_DATA || false;
 
 // 将静态资源目录设置为 publicPath
 app.use(express.static('public'));
@@ -18,24 +45,30 @@ app.use(express.static('public'));
  * @author Mr.FANG
  * @time 2023年7月29日
  */
-app.get('/events/', (reqs, ress) => {
+app.post('/events/', (req, ress) => {
+	console.log('body', req.body)
+	console.log('req', req.ip)
+	console.log(req.params);
+
 	ress.setHeader('Context-type', 'text/event-stream');
 	ress.setHeader('Cache-Control', 'no-cache');
 	ress.setHeader('Connection', 'keep-alive');
 	ress.flushHeaders();
 
 	const postData = {
-		"model": "gpt-3.5-turbo",
-		"messages": [{
-				"role": "system",
-				"content": "You are a helpful assistant."
-			},
-			{
-				"role": "user",
-				"content": "java 降序排序"
-			}
-		],
-		'stream': true
+		model: "gpt-3.5-turbo",
+		messages:req.body.messages,
+		// "messages": [
+		// 	{
+		// 		"role": "system",
+		// 		"content": "You are a helpful assistant."
+		// 	},
+		// 	{
+		// 		"role": "user",
+		// 		"content": "java 降序排序"
+		// 	}
+		// ],
+		stream: true
 	};
 	const options = {
 		method: 'POST',
@@ -45,6 +78,9 @@ app.get('/events/', (reqs, ress) => {
 		},
 		body: JSON.stringify(postData)
 	};
+	if (options) {
+		console.info('请求参数：', options)
+	}
 	fetch(url, options)
 		.then(response => response.body)
 		.then(res => {
@@ -56,17 +92,24 @@ app.get('/events/', (reqs, ress) => {
 				const decoder = new TextDecoder('utf-8');
 				while (null !== (chunk = res.read())) {
 					const chunks = decoder.decode(chunk);
-					console.log('原始数据====>', chunks)
+					if (debug_data) {
+						console.info('original====>', chunks)
+					}
 					const d = parseData(chunks, temp, context, ress);
 					temp = d.temp;
 					context = d.context;
-					// console.log(d.result, d.result.length)
+					if (debug_data) {
+						console.info('parse====>', d.result, )
+					}
+
 				}
 			});
 
 			res.on('end', () => {
-				console.log('读取结束')
-				console.log(context)
+				if (debug)
+					console.log('读取结束')
+				if (debug)
+					console.log(context)
 				ress.end();
 			})
 		});
@@ -77,14 +120,21 @@ app.get('/events/', (reqs, ress) => {
  * @author Mr.FANG
  * @time 2023年7月29日
  */
-app.get('/events/v2/', (reqs, res) => {
+app.post('/events/v2/', (req, res) => {
+	console.log('body', req.body.messages)
 	res.setHeader('Content-type', 'text/event-stream')
 	res.setHeader('Cache-Control', 'no-cache');
 	res.setHeader('Connection', 'keep-alive');
 	res.flushHeaders();
-	console.log(data_path)
+	if (debug) {
+		console.log(data_path)
+	}
+
 	let p = path.join(__dirname, data_path);
-	console.log(p)
+	if (debug) {
+		console.log(p)
+	}
+
 	fs.readFile(p, 'UTF-8', (err, data) => {
 		if (err) {
 			console.error('Error reading file:', err);
@@ -98,16 +148,35 @@ app.get('/events/v2/', (reqs, res) => {
 			const d = parseData(lines[i], temp, context, res);
 			temp = d.temp;
 			context = d.context;
-			console.log(d.result, d.result.length)
+			if (debug) {
+				console.log(d.result, d.result.length)
+			}
 			i++;
 			if (i === lines.length) {
-				console.log(context)
+				if (debug) {
+					console.log(context)
+				}
 				clearInterval(interval)
 			}
 		})
 
 	});
 })
+
+/**
+ * @description 提前停止请求
+ * @author Mr.FANG
+ * @time 2023年7月29日
+ */
+app.get('/abort', (reqs, res) => {
+	if (sendFlag) {
+		console.log(controller.signal)
+		controller.adort(); // 停止
+		controller = new AbortController();
+		console.log(controller.signal) // 信号
+	}
+})
+
 
 /**
  * @description 解析 text/events-strem 
@@ -126,7 +195,9 @@ function parseData(data, temp, context, res) {
 	for (const d of strings) {
 		if (d.includes('DONE')) {
 			res.end('data:DONE\n\n');
-			console.log('结束：', d);
+			if (debug) {
+				console.log('结束：', d);
+			}
 			result.push('DONE')
 			return {
 				result,
