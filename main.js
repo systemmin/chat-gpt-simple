@@ -34,8 +34,8 @@ const port = process.env.PORT || 8080;
 const url = process.env.API_URL || 'https://api.openai.com';
 const data_path = process.env.DIR_PATH;
 const key = process.env.API_KEY;
-const debug = !process.env.DEBUG || false;
-const debug_data = !process.env.DEBUG_ROW_DATA || false;
+const debug = new Boolean(process.env.DEBUG) || false;
+const debug_data =new Boolean(process.env.DEBUG_ROW_DATA) || false;
 
 // 将静态资源目录设置为 publicPath
 app.use(express.static('public'));
@@ -54,7 +54,9 @@ app.post('/events/', (req, ress) => {
 	ress.setHeader('Cache-Control', 'no-cache');
 	ress.setHeader('Connection', 'keep-alive');
 	ress.flushHeaders();
-
+	for (const d of req.body.messages) {
+		delete d['id'];
+	}
 	const postData = {
 		model: "gpt-3.5-turbo",
 		messages:req.body.messages,
@@ -81,6 +83,16 @@ app.post('/events/', (req, ress) => {
 	if (options) {
 		console.info('请求参数：', options)
 	}
+	/**
+	 * {
+  "error": {
+    "message": "Additional properties are not allowed ('id' was unexpected) - 'messages.1'",
+    "type": "invalid_request_error",
+    "param": null,
+    "code": null
+  }
+}
+	 */
 	fetch(url, options)
 		.then(response => response.body)
 		.then(res => {
@@ -92,6 +104,9 @@ app.post('/events/', (req, ress) => {
 				const decoder = new TextDecoder('utf-8');
 				while (null !== (chunk = res.read())) {
 					const chunks = decoder.decode(chunk);
+					if(chunks.includes('error')){
+						console.error('Error :', chunks);
+					}
 					if (debug_data) {
 						console.info('original====>', chunks)
 					}
@@ -126,6 +141,7 @@ app.post('/events/v2/', (req, res) => {
 	res.setHeader('Cache-Control', 'no-cache');
 	res.setHeader('Connection', 'keep-alive');
 	res.flushHeaders();
+	console.log(debug)
 	if (debug) {
 		console.log(data_path)
 	}

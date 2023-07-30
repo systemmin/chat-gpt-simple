@@ -3,170 +3,29 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Event Stream Demo</title>
-		<style type="text/css">
-			body {
-				/* font-family: Arial, sans-serif; */
-				/* text-align: start; */
-			}
-
-			* {
-				margin: 0px;
-				padding: 0px;
-			}
-
-			p {
-				margin-bottom: 1.25em;
-				margin-top: 1.25em;
-			}
-
-
-			#main {
-				display: flex;
-			}
-
-			#left {
-				flex: 0 0 250px;
-				height: 100vh;
-				background-color: #202123;
-				color: #ececf1;
-			}
-
-			#right {
-				flex: 1;
-				height: 100vh;
-				background-color: aliceblue;
-				overflow: auto;
-			}
-
-			#top {
-				text-align: center;
-				padding: 10px 0px;
-				font-size: 18px;
-				background-color: #fff;
-				font-weight: 400;
-				border-bottom: 1px solid #ececf1;
-				position: relative;
-				top: 0px;
-				right: 0px;
-			}
-
-			.user {
-				background-color: #fff;
-			}
-
-			.system {
-				background-color: #f7f7f8;
-			}
-
-			.content {
-				display: flex;
-				gap: 20px;
-				max-width: 48rem;
-				margin: 0px auto;
-			}
-
-			.content div:first-child {
-				flex-shrink: 0;
-				align-items: flex-end;
-			}
-
-			.content div:last-child {
-				width: calc(100% - 115px);
-			}
-
-			.icon {
-				color: #fff;
-				width: 34px;
-				display: block;
-				height: 34px;
-				text-align: center;
-				line-height: 34px;
-				font-size: 23px;
-				font-weight: 400;
-				margin-bottom: 1.25em;
-				margin-top: 1.25em;
-			}
-
-			#send {
-				/* max-width: 48rem; */
-				box-shadow: 0 0 15px rgba(0, 0, 0, .1);
-				border-radius: 10px;
-				padding: 10px;
-				background-color: #fff;
-				position: fixed;
-				left: 36%;
-				bottom: 10px;
-				width: 40%;
-				display: flex;
-				gap: 10px;
-				align-items: flex-end;
-			}
-
-			#send div:first-child {
-				flex: 1;
-			}
-
-			#send div:last-child {
-				flex: 0 0 53px;
-			}
-
-			button {
-				cursor: pointer;
-				border: none;
-				margin: 10px;
-				background-color: #fff;
-			}
-
-			button:hover {
-				background-color: #19c37d;
-			}
-
-			#prompt-textarea {
-				width: 100%;
-				outline: none;
-				border: none;
-				font-size: 18px;
-				resize: none
-			}
-		</style>
+		<link rel="stylesheet" href="/css/main.css">
 		<link rel="stylesheet" href="/css/default.min.css">
 		<link rel="stylesheet" href="/css/monokai-sublime.css">
 	</head>
 
 	<body>
 		<div id="main">
-			<div id="left">left</div>
+			<div id="left">
+				<div id="createSession"><span>➕ 新建会话</span></div>
+				<div id="session-list">
+				</div>
+			</div>
 			<div id="right">
 				<div id="main-body">
 					<div id="top">简易版Chat-GPT</div>
-					<div id="list-msg">
-						<!-- <div class="user">
-							<div class="content">
-								<div>
-									<span class="icon " style="background-color: #4f2ba6;">M</span>
-								</div>
-								<div>
-									<p>内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容内容</p>
-								</div>
-							</div>
-						</div>
-						<div class="system">
-							<div class="content">
-								<div><span class="icon" style="background-color: #19c37d;">S</span></div>
-								<div id="event-stream-data">
-
-								</div>
-							</div>
-						</div> -->
-					</div>
-
+					<div id="list-msg"></div>
 				</div>
 				<div id="send">
 					<div>
 						<textarea id="prompt-textarea"></textarea>
 					</div>
 					<div>
-						<button id="sendMsg"  onclick="sendMsg()"><img src="/img/send.png" width="25px"></button>
+						<button id="sendMsg" onclick="sendMsg()"><img src="/img/send.png" width="25px"></button>
 					</div>
 				</div>
 				<div style="height: 52px;">
@@ -179,64 +38,41 @@
 		<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 		<script src="js/main.js"></script>
 		<script>
+			document.getElementById('createSession')
+			.addEventListener('click', (event) => {
+				pid = undefined;
+				console.log(pid)
+				console.log('新建会话');
+				userMessage = [];
+				deleteChild('list-msg');
+			})
+			loadRecod();
 			const sendMsg = () => {
 				const el = document.getElementById('prompt-textarea');
 				console.log(el.value)
-				if(!el.value){
+				if (!el.value) {
 					alert('内容为空')
 					return;
 				}
-				document.getElementById('prompt-textarea').disabled=!loading;
-				document.getElementById('sendMsg').disabled=!loading;
-			
+				document.getElementById('prompt-textarea').disabled = !loading;
+				document.getElementById('sendMsg').disabled = !loading;
+
 				console.log('开始', loading)
 				const els = document.getElementById('list-msg'); //
-				
 
-				let num1 = Math.random(100000) + "";
-				let suffix1 = num1.split('\.')[1];
-				let id1 = 'msg' + suffix1;
+				let id1 = generateUUID();
 				let s1 = createUserHtml(id1);
 				els.append(s1)
 				const elss = document.getElementById(id1); //
 				elss.innerHTML = marked.parse(el.value);;
 
-				let num = Math.random(100000) + "";
-				let suffix = num.split('\.')[1];
-				let id = 'msg' + suffix;
+				let id = generateUUID();
 				let s = createSystemHtml(id);
 				els.append(s)
-				connectToEventStream(id,el.value);
+				connectToEventStream(id1, id, el.value);
 				el.value = ""
 				console.log('结束', loading)
 			}
-			/**
-			 * 创建 dom
-			 */
-			const createHtml = (id, role) => {
-				if (document.getElementById(id)) {
-					return;
-				}
-				const roleDiv = document.createElement('div');
-				roleDiv.className = role
-
-				const contentDiv = document.createElement('div');
-				contentDiv.className = 'content'
-
-				const span = document.createElement('span');
-				span.className = 'icon';
-				span.style.backgroundColor = role === 'user' ? '#4f2ba6' : '#19c37d';
-				span.innerText = role === 'user' ? 'M' : 'S'
-				const idDiv = document.createElement('div');
-
-				idDiv.id = id;
-				contentDiv.append(span);
-				contentDiv.append(idDiv);
-				roleDiv.append(contentDiv)
-				return roleDiv
-			}
-			const createSystemHtml = (id) => createHtml(id, 'system');
-			const createUserHtml = (id) => createHtml(id, 'user');
 		</script>
 	</body>
 </html>

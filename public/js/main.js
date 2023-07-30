@@ -15,9 +15,7 @@ let systemMessage = {
 	"content": "你是个乐于助人的助手。"
 };
 
-let userMessage = [
-
-];
+let userMessage = [];
 
 /**
  * @param {Object} el_id 清空指定节点下内容
@@ -96,6 +94,7 @@ function displayEvent(content) {
 		blocks.forEach(block => {
 			hljs.highlightBlock(block);
 		});
+		scrollToTop()
 	}
 
 }
@@ -144,7 +143,7 @@ function connectToEventStream(id, aid, value) {
 	options.body = JSON.stringify(postData);
 
 	// console.log(options)
-	fetch('/events/v2/', options)
+	fetch('/events/', options)
 		.then(response => {
 			const reader = response.body.getReader();
 			// const decoder = new TextDecoder();
@@ -186,7 +185,7 @@ function connectToEventStream(id, aid, value) {
 }
 
 /**
- * @description 保存数据到本地
+ * @description 创建 dom
  * @author Mr.FANG
  * @time 2023年7月30日
  * 
@@ -247,9 +246,10 @@ const saveRecord = () => {
 			}
 		}
 		if (currentData) {
-			for (const msg of userMessage) {
-				currentData.list.push(msg)
-			}
+			// for (const msg of userMessage) {
+			// 	currentData.list.push(msg)
+			// }
+			currentData.list = userMessage;
 			localStorage.setItem('list', JSON.stringify(list))
 		} else {
 			const data = {
@@ -313,6 +313,7 @@ const renderingHtml = (list) => {
 	blocks.forEach(block => {
 		hljs.highlightBlock(block);
 	});
+	scrollToTop()
 }
 
 
@@ -330,10 +331,77 @@ const loadDetail = (pid) => {
 	deleteChild('list-msg'); // 清空节点
 	list.forEach(item => {
 		if (item.pid === pid) {
+			userMessage = item.list;
 			renderingHtml(item.list)
 		}
 	})
 }
+/**
+ * 
+ * @description 从本地缓存删除
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ * 
+ * @param {String} id 消息列表 id 
+ */
+const deleteRecord = (id) => {
+	console.log('delete', id)
+	const obj = localStorage.getItem('list');
+	const list = obj ? JSON.parse(obj) : [];
+	localStorage.setItem('list', JSON.stringify(list.filter(item => item.pid !== id)));
+	loadRecod();
+}
+
+/**
+ * 
+ * @description 下载文件
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ * 
+ * @param {String} id 消息列表 id 
+ */
+const exportRecord = (id) => {
+	const obj = localStorage.getItem('list');
+	const list = obj ? JSON.parse(obj) : [];
+	var jsonData = list.filter(item => item.pid === id)[0];
+	var jsonString = JSON.stringify(jsonData);
+	var blob = new Blob([jsonString], {
+		type: "application/json"
+	});
+	var downloadLink = document.createElement("a");
+	downloadLink.href = URL.createObjectURL(blob);
+	downloadLink.download = id + ".json";
+	downloadLink.click();
+}
+
+let showButton = false;
+const mainEl = document.getElementById('right');
+const handleScroll = () => {
+	// 显示或隐藏按钮根据容器的滚动位置
+	const container = mainEl.scrollContainer;
+	// if (container.scrollTop > 100) {
+	// 	showButton = true;
+	// } else {
+	// 	showButton = false;
+	// }
+}
+
+/**
+ * 
+ * @description 滚动到底部
+ * @author Mr.FANG
+ * @time 2023年7月30日
+ */
+const scrollToTop = () => {
+	console.log('dddd')
+	// 平滑滚动到容器顶部
+	mainEl.scrollTo({
+		top: mainEl.scrollHeight,
+		behavior: "smooth",
+	});
+}
+mainEl.addEventListener("scroll", handleScroll())
+// removeEventListener("scroll", this.handleScroll);
 
 
 /**
@@ -349,9 +417,11 @@ document.addEventListener('click', (event) => {
 	const did = event.target.dataset.id
 	if (className === 'export') {
 		console.log('导出')
+		exportRecord(did)
 	} else if (className === 'delete') {
 		console.log('删除')
-	} else if (className === 'detail') {
+		deleteRecord(did);
+	} else if (className === 'detail' || className === 'record') {
 		console.log('详情')
 		pid = did
 		console.log('pid', pid)
