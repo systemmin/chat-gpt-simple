@@ -180,13 +180,18 @@
 		<script src="js/main.js"></script>
 		<script>
 			const sendMsg = () => {
-				document.getElementById('prompt-textarea').disabled=!loading;
-				document.getElementById('sendMsg').disabled=!loading;
-				
-				console.log('开始', loading)
-				const els = document.getElementById('list-msg'); //
 				const el = document.getElementById('prompt-textarea');
 				console.log(el.value)
+				if(!el.value){
+					alert('内容为空')
+					return;
+				}
+				document.getElementById('prompt-textarea').disabled=!loading;
+				document.getElementById('sendMsg').disabled=!loading;
+			
+				console.log('开始', loading)
+				const els = document.getElementById('list-msg'); //
+				
 
 				let num1 = Math.random(100000) + "";
 				let suffix1 = num1.split('\.')[1];
@@ -196,13 +201,13 @@
 				const elss = document.getElementById(id1); //
 				elss.innerHTML = marked.parse(el.value);;
 
-				el.value = ""
 				let num = Math.random(100000) + "";
 				let suffix = num.split('\.')[1];
 				let id = 'msg' + suffix;
 				let s = createSystemHtml(id);
 				els.append(s)
-				connectToEventStream(id);
+				connectToEventStream(id,el.value);
+				el.value = ""
 				console.log('结束', loading)
 			}
 			/**
