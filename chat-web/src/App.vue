@@ -5,29 +5,35 @@
 			<div id="right">
 				<message></message>
 				<message role="assistant"></message>
-
-				<a-affix :offset-bottom="bottom" style="background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%,#fff 54.73%);">
-					<div id="bottom-send">
-						<a-textarea placeholder="Basic usage" :rows="4" />
-					</div>
-				</a-affix>
+				<send-text></send-text>
 			</div>
+
 
 		</div>
 	</div>
 </template>
 
 <script>
-	import message from '@/components/Message/index'
+	import Message from '@/components/Message/index';
+	import SendText from '@/components/SendText/index';
+	import {
+		SendOne
+	} from '@icon-park/vue';
 	export default {
 		name: 'App',
 		components: {
-			message
+			Message,
+			SendText,
+			SendOne
 		},
 		data() {
 			return {
 				bottom: 20,
 			}
+		},
+
+		methods: {
+
 		}
 	}
 </script>
@@ -38,11 +44,38 @@
 		margin: 0px;
 	}
 
+	::-webkit-scrollbar {
+		width: 7px;
+	}
+
+	::-webkit-scrollbar-track {
+		background-color: #ffffff;
+		/* 轨道颜色 */
+	}
+
+	::-webkit-scrollbar-thumb {
+		background-color: #bbbbbb;
+		/* 滑块颜色 */
+		border-radius: 5px;
+		/* 滑块圆角 */
+	}
+
 	#app {
 		font-family: Avenir, Helvetica, Arial, sans-serif;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		color: #2c3e50;
+		/* 定义滚动条的样式 */
+		scrollbar-width: thin;
+		/* 滚动条宽度 */
+		scrollbar-color: #bbbbbb #ffffff;
+		/* 滚动条颜色(轨道颜色 滑块颜色) */
+
+		/* Firefox浏览��� */
+		scrollbar-width: thin;
+		/* 滚动条宽度 */
+		scrollbar-color: #bbbbbb #ffffff;
+		/* 滚动条颜色(轨道颜色 滑块颜色) */
 	}
 
 	#main {
@@ -61,8 +94,5 @@
 		height: 100vh;
 		background-color: aliceblue;
 		overflow: auto;
-	}
-	#bottom-send{
-		background-image: linear-gradient(180deg,hsla(0,0%,100%,0) 13.94%,#fff 54.73%);
 	}
 </style>

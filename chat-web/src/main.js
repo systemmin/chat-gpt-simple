@@ -7,6 +7,10 @@ Vue.use(Button);
 Vue.use(Input);
 Vue.use(Affix);
 
+import {CheckOne} from '@icon-park/vue';
+import '@icon-park/vue/styles/index.css';
+Vue.use(CheckOne);
+
 Vue.config.productionTip = false
 Vue.prototype.$message = message;
 
