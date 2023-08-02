@@ -1,10 +1,13 @@
 <template>
 	<div id="app">
 		<div id="main">
-			<div id="left">1</div>
+			<div id="left">
+				<sidebar></sidebar>
+			</div>
 			<div id="right">
 				<message></message>
 				<message role="assistant"></message>
+				<div style="height: 6.25rem;border-top: 1px solid #dededf;"></div>
 				<send-text></send-text>
 			</div>
 
@@ -16,6 +19,7 @@
 <script>
 	import Message from '@/components/Message/index';
 	import SendText from '@/components/SendText/index';
+	import Sidebar from '@/components/Sidebar/index';
 	import {
 		SendOne
 	} from '@icon-park/vue';
@@ -24,7 +28,8 @@
 		components: {
 			Message,
 			SendText,
-			SendOne
+			SendOne,
+			Sidebar
 		},
 		data() {
 			return {
@@ -92,7 +97,7 @@
 	#right {
 		flex: 1;
 		height: 100vh;
-		background-color: aliceblue;
+		background-color: #ffffff;
 		overflow: auto;
 	}
 </style>
