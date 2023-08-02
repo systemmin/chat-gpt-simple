@@ -7,9 +7,8 @@
 					<plus theme="outline" size="24" fill="#fff" :strokeWidth="2" />
 					<div>新会话</div>
 				</div>
-				<div class="icon-session cursor-p">
-					<expand-right theme="outline" size="24" fill="#fff" :strokeWidth="2" />
-					<!-- <expand-left theme="outline" size="24" fill="#d9d9e3" :strokeWidth="1"/> -->
+				<div class="icon-session cursor-p" @click="collapse()">
+					<expand-right theme="outline" size="24" fill="#fff" :strokeWidth="4" />
 				</div>
 			</div>
 			<div class="session" style="background-color:#050509;">
@@ -37,9 +36,7 @@
 					<delete-four theme="outline" size="18" fill="#a7a7ae" :strokeWidth="2" />
 				</div>
 			</div>
-
 		</div>
-		<div class="bottom"></div>
 	</div>
 
 </template>
@@ -53,7 +50,8 @@
 		Comment,
 		DeleteFour,
 		Pencil,
-		Setting
+		Setting,
+		ExpandLeft
 	} from '@icon-park/vue';
 	export default {
 		name: 'Sidebar',
@@ -65,7 +63,8 @@
 			Setting,
 			Comment,
 			DeleteFour,
-			Pencil
+			Pencil,
+			ExpandLeft
 		},
 		props: {
 
@@ -82,6 +81,11 @@
 			handleRecord(index) {
 				this.index = index;
 			},
+			collapse() {
+				document.getElementById('left').style.display = 'none';
+				document.getElementById('bottom-send').style.width = '100vw';
+				this.$emit('collapse', false)
+			}
 		}
 
 	}
@@ -109,31 +113,35 @@
 		gap: 0.625rem;
 	}
 
-	.create-session:hover {
-		/* background-color: #2b2c2f; */
-		background-color: #40414f;
-
+	.create-session:hover,
+	.icon-session:hover {
+		background-color: #2b2c2f;
 	}
 
 	.cursor-p {
 		cursor: pointer;
 		border-radius: 0.3125rem;
 		border: 0.0625rem solid #555659;
-		padding-top: 6px;
+		padding-top: 0.375rem;
 	}
 
 	.center {
 		overflow: auto;
-		height: calc(100vh - 130px);
+		height: calc(100vh - 150px);
+	}
+
+	.center::-webkit-scrollbar-track {
+		background-color: #202123;
+		/* 轨道颜色 */
 	}
 
 	.record {
 		display: flex;
-		margin: 10px;
-		padding: 10px;
+		margin: 0.625rem;
+		padding: 0.625rem;
 		cursor: pointer;
-		border-radius: 5px;
-		gap: 5px;
+		border-radius: 0.3125rem;
+		gap: 0.3125rem;
 		align-items: center;
 		position: relative;
 	}
@@ -147,7 +155,7 @@
 	}
 
 	.record div:first-child {
-		flex: 0 0 20px;
+		flex: 0 0 1.25rem
 	}
 
 	.tool {
@@ -156,18 +164,14 @@
 		position: absolute;
 		right: 0px;
 		background-color: #343541;
-		width: 49px;
+		width: 3.0625rem
 	}
-
-	/* .record div:last-child {
-		flex: 0 0 40px
-	} */
 
 	.record div:nth-child(2) {
 		flex: 1;
 		justify-self: start;
 		overflow: hidden;
 		white-space: nowrap;
-		max-width: 164px;
+		max-width: 11.25rem
 	}
 </style>

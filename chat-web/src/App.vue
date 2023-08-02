@@ -2,7 +2,7 @@
 	<div id="app">
 		<div id="main">
 			<div id="left">
-				<sidebar></sidebar>
+				<sidebar @collapse="(e)=>show=!e"></sidebar>
 			</div>
 			<div id="right">
 				<message></message>
@@ -11,7 +11,10 @@
 				<send-text></send-text>
 			</div>
 
-
+		</div>
+		<!-- 折叠按钮 -->
+		<div v-if="show" style="position: fixed;top: 20px;left: 20px;cursor: pointer;" @click="handleCollapse()">
+			<expand-left theme="outline" size="24" fill="#000" :strokeWidth="4" />
 		</div>
 	</div>
 </template>
@@ -21,7 +24,8 @@
 	import SendText from '@/components/SendText/index';
 	import Sidebar from '@/components/Sidebar/index';
 	import {
-		SendOne
+		SendOne,
+		ExpandLeft
 	} from '@icon-park/vue';
 	export default {
 		name: 'App',
@@ -29,16 +33,23 @@
 			Message,
 			SendText,
 			SendOne,
-			Sidebar
+			Sidebar,
+			ExpandLeft
 		},
 		data() {
 			return {
 				bottom: 20,
+				top: 20,
+				show: false,
 			}
 		},
 
 		methods: {
-
+			handleCollapse(e) {
+				document.getElementById('left').style.display = 'block';
+				document.getElementById('bottom-send').style.width='calc(100% - 15.625rem)';
+				this.show = false;
+			}
 		}
 	}
 </script>
