@@ -8,14 +8,20 @@
 				<message></message>
 				<message role="assistant"></message>
 				<div style="height: 6.25rem;border-top: 1px solid #dededf;"></div>
-				<send-text></send-text>
+				<send-text :prompt="prompt"></send-text>
 			</div>
+			<!-- 系统配置组件 -->
+			<sys-config></sys-config>
+			<!-- 提示语句 -->
+			<tips-text @tips="tips"></tips-text>
+			<!-- 折叠按钮 -->
+			<div v-if="show" style="position: fixed;top: 20px;left: 20px;cursor: pointer;" @click="handleCollapse()">
+				<expand-left theme="outline" size="24" fill="#000" :strokeWidth="4" />
+			</div>
+		</div>
 
-		</div>
-		<!-- 折叠按钮 -->
-		<div v-if="show" style="position: fixed;top: 20px;left: 20px;cursor: pointer;" @click="handleCollapse()">
-			<expand-left theme="outline" size="24" fill="#000" :strokeWidth="4" />
-		</div>
+
+		<!-- 示例语句组件 -->
 	</div>
 </template>
 
@@ -23,6 +29,8 @@
 	import Message from '@/components/Message/index';
 	import SendText from '@/components/SendText/index';
 	import Sidebar from '@/components/Sidebar/index';
+	import SysConfig from '@/components/SysConfig/index';
+	import TipsText from '@/components/TipsText/index';
 	import {
 		SendOne,
 		ExpandLeft
@@ -32,6 +40,8 @@
 		components: {
 			Message,
 			SendText,
+			SysConfig,
+			TipsText,
 			SendOne,
 			Sidebar,
 			ExpandLeft
@@ -41,14 +51,19 @@
 				bottom: 20,
 				top: 20,
 				show: false,
+				prompt:'', // 提词
 			}
 		},
 
 		methods: {
 			handleCollapse(e) {
 				document.getElementById('left').style.display = 'block';
-				document.getElementById('bottom-send').style.width='calc(100% - 15.625rem)';
+				document.getElementById('bottom-send').style.width = 'calc(100% - 15.625rem)';
 				this.show = false;
+			},
+			tips(text){
+				this.prompt = text.prompt;
+				console.log(text)
 			}
 		}
 	}
@@ -74,6 +89,9 @@
 		/* 滑块颜色 */
 		border-radius: 5px;
 		/* 滑块圆角 */
+	}
+	code{
+		border-radius: 0.3125rem;
 	}
 
 	#app {
@@ -103,6 +121,9 @@
 		height: 100vh;
 		background-color: #202123;
 		color: #ececf1;
+		-moz-user-select: none;
+		-webkit-user-select: none;
+		user-select: none;
 	}
 
 	#right {

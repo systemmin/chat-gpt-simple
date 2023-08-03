@@ -7,19 +7,19 @@
 					<plus theme="outline" size="24" fill="#fff" :strokeWidth="2" />
 					<div>新会话</div>
 				</div>
-				<div class="icon-session cursor-p" @click="collapse()">
+				<div class="icon-session cursor-p" @click="onCollapse()">
 					<expand-right theme="outline" size="24" fill="#fff" :strokeWidth="4" />
 				</div>
 			</div>
-			<div class="session" style="background-color:#050509;">
+			<div class="session" style="background-color:#050509;" @click="onExample()">
 				<div class="create-session cursor-p">
-					<text-message theme="outline" size="24" fill="#fff" :strokeWidth="2" />
+					<text-message theme="outline" size="24" fill="#fff" :strokeWidth="4" />
 					<div>示例语句</div>
 				</div>
 			</div>
-			<div class="session" style="background-color:#050509;">
+			<div class="session" style="background-color:#050509;" @click="onSetting()">
 				<div class="create-session cursor-p">
-					<setting theme="outline" size="24" fill="#fff" :strokeWidth="2" />
+					<setting theme="outline" size="24" fill="#fff" :strokeWidth="4" />
 					<div>系统配置</div>
 				</div>
 			</div>
@@ -28,12 +28,13 @@
 			<div class="record" v-for="(item,i) in 50" :style="{backgroundColor:index===i?'#343541':''}"
 				@click="handleRecord(i)">
 				<div style="display: flex;">
-					<comment theme="outline" size="18" fill="#a7a7ae" :strokeWidth="2" />
+					<comment theme="outline" size="18" fill="#a7a7ae" :strokeWidth="4" />
 				</div>
 				<div>系统配置系统配置系统配置系统配置</div>
+				<!-- <div><a-input style="background-color: #050509;color: white;"></a-input></div> -->
 				<div class="tool" v-if="index===i">
-					<pencil theme="outline" size="18" fill="#a7a7ae" :strokeWidth="2" />
-					<delete-four theme="outline" size="18" fill="#a7a7ae" :strokeWidth="2" />
+					<pencil theme="outline" size="18" fill="#a7a7ae" :strokeWidth="4" />
+					<delete-four theme="outline" size="18" fill="#d8171a" :strokeWidth="4" />
 				</div>
 			</div>
 		</div>
@@ -81,10 +82,30 @@
 			handleRecord(index) {
 				this.index = index;
 			},
-			collapse() {
+			onCollapse() {
 				document.getElementById('left').style.display = 'none';
 				document.getElementById('bottom-send').style.width = '100vw';
+				document.getElementById('sys-config').style.display='none';
+				document.getElementById('tips-text').style.display='none';
 				this.$emit('collapse', false)
+			},
+			onSetting() {
+				const sysConfigEl = document.getElementById('sys-config');
+				if (!sysConfigEl.style.display || sysConfigEl.style.display === 'block') {
+					sysConfigEl.style.display = 'none';
+				} else {
+					sysConfigEl.style.display = 'block';
+				}
+				this.$emit('setting', true);
+			},
+			onExample() {
+				const sysConfigEl = document.getElementById('tips-text');
+				if (!sysConfigEl.style.display || sysConfigEl.style.display === 'block') {
+					sysConfigEl.style.display = 'none';
+				} else {
+					sysConfigEl.style.display = 'block';
+				}
+				this.$emit('onExample', true);
 			}
 		}
 
@@ -98,6 +119,7 @@
 		align-items: center;
 		margin: 0.4375rem;
 		gap: 0.625rem;
+
 	}
 
 	.icon-session {

@@ -22,7 +22,15 @@
 			SendOne
 		},
 		props: {
-
+			prompt: {
+				type: String,
+			}
+		},
+		watch: {
+			// 监听
+			prompt(val, oldVal) {
+				this.text = val;
+			},
 		},
 		data() {
 			return {

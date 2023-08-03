@@ -4,12 +4,18 @@ const express = require('express');
 const fetch = require('node-fetch');
 require('dotenv').config()
 const app = express();
-
+const Result = require("./result.js");
+const {
+	Console
+} = require('node:console');
+const output = fs.createWriteStream('./stdout.log');
+const errorOutput = fs.createWriteStream('./stderr.log');
 /**
  * 
  * 解析获取 json 数据
  */
 const bodyParser = require('body-parser');
+const res = require('express/lib/response');
 const json = express.json({
 	type: '*/json'
 });
@@ -19,13 +25,7 @@ app.use(bodyParser.urlencoded({
 	extended: false
 }));
 
-/**
- * AbortController 接口表示一个控制器对象，允许你根据需要中止一个或多个 Web 请求
- * AbortController.signal 只读返回一个 AbortSignal 对象实例，它可以用来 with/abort 一个 Web（网络）请求。
- * AbortController.abort() 中止一个尚未完成的 Web（网络）请求。这能够中止 fetch 请求及任何响应体的消费和流。
- */
-const AbortController = globalThis.AbortController
-let controller = new AbortController();
+
 let sendFlag = false;
 /**
  * 常量
@@ -35,7 +35,7 @@ const url = process.env.API_URL || 'https://api.openai.com';
 const data_path = process.env.DIR_PATH;
 const key = process.env.API_KEY;
 const debug = new Boolean(process.env.DEBUG) || false;
-const debug_data =new Boolean(process.env.DEBUG_ROW_DATA) || false;
+const debug_data = new Boolean(process.env.DEBUG_ROW_DATA) || false;
 
 // 将静态资源目录设置为 publicPath
 app.use(express.static('public'));
@@ -59,7 +59,7 @@ app.post('/events/', (req, ress) => {
 	}
 	const postData = {
 		model: "gpt-3.5-turbo",
-		messages:req.body.messages,
+		messages: req.body.messages,
 		// "messages": [
 		// 	{
 		// 		"role": "system",
@@ -104,7 +104,7 @@ app.post('/events/', (req, ress) => {
 				const decoder = new TextDecoder('utf-8');
 				while (null !== (chunk = res.read())) {
 					const chunks = decoder.decode(chunk);
-					if(chunks.includes('error')){
+					if (chunks.includes('error')) {
 						console.error('Error :', chunks);
 					}
 					if (debug_data) {
@@ -185,15 +185,77 @@ app.post('/events/v2/', (req, res) => {
  * @time 2023年7月29日
  */
 app.get('/abort', (reqs, res) => {
-	if (sendFlag) {
-		console.log(controller.signal)
-		controller.adort(); // 停止
-		controller = new AbortController();
-		console.log(controller.signal) // 信号
-	}
+
+})
+
+/**
+ * @description 获取所有模型
+ */
+app.get('/models', async (req, res) => {
+	res.setHeader('Context-type', 'application/json');
+	const options = {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${key}`,
+		},
+	};
+	const data = await request('test', options)
+	res.json(data.stringify())
 })
 
 
+const logger = new Console({
+	stdout: output,
+	stderr: errorOutput
+});
+/**
+ * @param {String} url 访问地址
+ * @param {Object} options 请求参数
+ */
+const request = async (url, options) => {
+	try {
+		console.time('process');
+		logger.log('请求URL:%s', url)
+		logger.log('请求参数:', options)
+		const response = await fetch(url, options);
+		logger.log('响应标识:%s', response.ok)
+		logger.log('响应状态:', response.status)
+		logger.log('响应文本:', response.statusText)
+		const contentType = response.headers.get('content-type');
+		logger.log('响应类型:', contentType)
+		logger.log('header:', response.headers.raw())
+		const decoder = new TextDecoder('utf-8');
+		let data; // 返回结果
+		switch (contentType) {
+			case 'text/html':
+				data = await response.text();
+				break;
+			case 'text/event-stream':
+				data = await response.body;
+				break;
+			case 'application/json':
+				data = await response.json();
+				break;
+			default:
+				data = await response.blob();
+		}
+		logger.log('响应结果:', data)
+		if (response.ok) {
+			return Result.ok(data);
+		} else {
+			return Result.fail({
+				code: response.status,
+				statusText: response.statusText,
+				data: data,
+			})
+		}
+	} catch (err) {
+		logger.error(err)
+		return Result.fail(err.toString())
+	}
+	return Result.fail();
+}
 /**
  * @description 解析 text/events-strem 
  * @author Mr.FANG
