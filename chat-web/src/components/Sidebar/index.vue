@@ -150,6 +150,8 @@
 	.center {
 		overflow: auto;
 		height: calc(100vh - 150px);
+		scrollbar-color: #bbbbbb #202123;
+		scrollbar-width: thin;
 	}
 
 	.center::-webkit-scrollbar-track {

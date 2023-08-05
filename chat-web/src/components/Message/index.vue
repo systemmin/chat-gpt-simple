@@ -1,14 +1,14 @@
 <template>
 	<!-- 消息体 -->
-	<div :style="{'backgroundColor':role==='user'?ubgColor:abgColor}">
+	<div :style="{'backgroundColor':data.role==='user'?ubgColor:abgColor}" v-if="data">
 		<div class="message">
 			<div class="message-icon">
 				<span class="icon"
-					:style="{'background-color':role==='user'?uIconColor:aIconColor}">{{role==='user'?'U':'S'}}</span>
+					:style="{'background-color':data.role==='user'?uIconColor:aIconColor}">{{data.role==='user'?'U':'S'}}</span>
 			</div>
-			<div class="message-body" v-highlight v-html="htmls" v-if="isOrginal"></div>
+			<div class="message-body" v-highlight v-html="data.html" v-if="data.orginal" ></div>
 			<!-- 显示原文 -->
-			<div class="message-body" v-else><pre>{{o_html}}</pre></div>
+			<div class="message-body" v-else><pre>{{data.content}}</pre></div>
 			
 			<!-- 按钮 -->
 			<div class="message-tool">
@@ -34,19 +34,14 @@
 	import '@/assets/css/monokai-sublime.css';
 	import '@/assets/css/copy.min.css';
 	import html2canvas from 'html2canvas';
-	import {
-		marked
-	} from 'marked';
+	
 
 	import {
 		CopyOne,
 		FileCodeOne,
 	} from '@icon-park/vue';
 	// 控制台警告处理
-	marked.options({
-		headerIds: false,
-		mangle: false
-	})
+	
 
 
 	export default {
@@ -63,10 +58,21 @@
 
 			},
 			// 内容
-			html: {
-				type: String,
+			data: {
+				type: Object,
 			}
 		},
+		// watch: {
+		// 	// 监听
+		// 	data(val, oldVal) {
+		// 		this.text = val;
+		// 		this.$nextTick(() => {
+		// 			this.html = marked.parse(
+		// 				val
+		// 			)
+		// 		})
+		// 	},
+		// },
 		data() {
 			return {
 				ubgColor: '#fff',
@@ -74,18 +80,12 @@
 				uIconColor: '#4f2ba6',
 				aIconColor: '#19c37d',
 				showButton: false,
-				htmls: '',
+				html: '',
 				isOrginal:true,
 				o_html:'```javascript /**\n * @param {Object} el_id 清空指定节点下内容\n */\nfunction deleteChild(el_id) {\n	const del_el = document.getElementById(el_id);\n	var first = del_el.firstElementChild;\n	while (first) {\n		first.remove();\n		first = del_el.firstElementChild;\n	}\n}```',
 			}
 		},
 		created() {
-			console.log(marked)
-			this.$nextTick(() => {
-				this.htmls = marked.parse(
-					this.o_html
-				)
-			})
 		},
 		methods: {
 			copy(event) {
@@ -97,7 +97,7 @@
 				// 	const base64Image = canvas.toDataURL('image/png');
 				// 	this.downPng(base64Image)
 				// })
-				this.isOrginal = !this.isOrginal;
+				this.data.orginal = !this.data.orginal;
 			},
 			downPng(base64Image) {
 				var downloadLink = document.createElement("a");

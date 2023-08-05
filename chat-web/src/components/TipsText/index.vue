@@ -111,6 +111,8 @@
 		color: #ececf1;
 		overflow: auto;
 		display: none;
+		scrollbar-color: #bbbbbb #202123;
+		scrollbar-width: thin;
 	}
 
 	#tips-text>div:first-child {

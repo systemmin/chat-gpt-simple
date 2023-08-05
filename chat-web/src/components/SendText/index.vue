@@ -49,12 +49,49 @@
 					this.send();
 				}
 			},
-			send() {
+			async send() {
 				if (!this.text) {
 					return;
 				}
 				this.$emit('send', this.text);
-				this.text = '';
+				this.text=''
+
+				// const options = {
+				// 	method: 'POST',
+				// 	headers: {
+				// 		'Content-Type': 'application/json'
+				// 	},
+				// 	body: JSON.stringify(this.tokenMsg)
+				// };
+				// fetch('http://localhost:8080/chat/token', options)
+				// 	.then(response => {
+				// 		console.log(response)
+				// 		const reader = response.body.getReader();
+				// 		// const decoder = new TextDecoder();
+				// 		// 将响应解析为 text/event-stream 格式
+				// 		const decoder = new TextDecoder('utf-8');
+
+				// 		function readStream() {
+				// 			return reader.read()
+				// 				.then(({
+				// 					done,
+				// 					value
+				// 				}) => {
+				// 					if (!done) {
+				// 						const chunk = decoder.decode(value);
+				// 						console.log('响应结果：', chunk)
+				// 						return readStream();
+				// 					}
+				// 				});
+				// 		}
+				// 		return readStream();
+				// 	})
+				// 	.catch(error => {
+				// 		console.error('Error occurred while fetching event stream:', error);
+				// 	});
+				// const response = await fetch('http://localhost:8080/chat/token',{method:'POST'})
+				// const data = await response.json();
+				// console.log(data)
 			}
 		}
 	}

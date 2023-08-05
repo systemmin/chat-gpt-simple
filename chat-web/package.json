@@ -10,8 +10,10 @@
   "dependencies": {
     "@icon-park/vue": "^1.4.2",
     "ant-design-vue": "^1.7.8",
+    "axios": "^1.4.0",
     "babel-plugin-import": "^1.13.8",
     "core-js": "^3.8.3",
+    "eventsource-parser": "^1.0.0",
     "highlight": "^0.2.4",
     "html2canvas": "^1.4.1",
     "marked": "^6.0.0",
