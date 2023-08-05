@@ -6,20 +6,24 @@
 				<span class="icon"
 					:style="{'background-color':data.role==='user'?uIconColor:aIconColor}">{{data.role==='user'?'U':'S'}}</span>
 			</div>
-			<div class="message-body" v-highlight v-html="data.html" v-if="data.orginal" ></div>
+			<div class="message-body" v-highlight v-html="data.html" v-if="data.orginal"></div>
 			<!-- 显示原文 -->
-			<div class="message-body" v-else><pre>{{data.content}}</pre></div>
-			
+			<div class="message-body" v-else>
+				<pre
+					style="white-space: break-spaces;padding: 10px;border: 1px solid #ececf1;border-radius: 5px;">{{data.content}}
+				</pre>
+			</div>
+
 			<!-- 按钮 -->
 			<div class="message-tool">
 				<div @click="copy($event)">
 					<a-tooltip title="复制">
-					<copy-one theme="filled" size="18" fill="#acacbe" />
+						<copy-one theme="filled" size="18" fill="#acacbe" />
 					</a-tooltip>
 				</div>
-				<div @click="capture($event)">
+				<div @click="capture($event)" v-if="data.role!=='user'">
 					<a-tooltip title="显示原文">
-					<file-code-one theme="filled" size="18" fill="#acacbe" />
+						<file-code-one theme="filled" size="18" fill="#acacbe" />
 					</a-tooltip>
 				</div>
 			</div>
@@ -30,18 +34,13 @@
 
 <script>
 	import 'highlight.js/styles/github.css';
-	// import 'highlight.js/styles/shades-of-purple.css';
 	import '@/assets/css/monokai-sublime.css';
 	import '@/assets/css/copy.min.css';
 	import html2canvas from 'html2canvas';
-	
-
 	import {
 		CopyOne,
 		FileCodeOne,
 	} from '@icon-park/vue';
-	// 控制台警告处理
-	
 
 
 	export default {
@@ -51,7 +50,6 @@
 			FileCodeOne
 		},
 		props: {
-			// assistant user
 			role: {
 				type: String,
 				default: 'user',
@@ -62,41 +60,29 @@
 				type: Object,
 			}
 		},
-		// watch: {
-		// 	// 监听
-		// 	data(val, oldVal) {
-		// 		this.text = val;
-		// 		this.$nextTick(() => {
-		// 			this.html = marked.parse(
-		// 				val
-		// 			)
-		// 		})
-		// 	},
-		// },
 		data() {
 			return {
 				ubgColor: '#fff',
 				abgColor: '#f7f7f8',
 				uIconColor: '#4f2ba6',
 				aIconColor: '#19c37d',
-				showButton: false,
-				html: '',
-				isOrginal:true,
-				o_html:'```javascript /**\n * @param {Object} el_id 清空指定节点下内容\n */\nfunction deleteChild(el_id) {\n	const del_el = document.getElementById(el_id);\n	var first = del_el.firstElementChild;\n	while (first) {\n		first.remove();\n		first = del_el.firstElementChild;\n	}\n}```',
+				isOrginal: true,
 			}
-		},
-		created() {
 		},
 		methods: {
 			copy(event) {
-				console.log(event)
+				this.copyToClipboard(this.data.content);
+				this.$message.success('已复制剪切板')
+			},
+			copyToClipboard(text) {
+				var input = document.createElement("textarea");
+				input.value = text;
+				document.body.appendChild(input);
+				input.select();
+				document.execCommand("copy");
+				document.body.removeChild(input);
 			},
 			capture(event) {
-				// 截图
-				// html2canvas(document.getElementById('right')).then(canvas => {
-				// 	const base64Image = canvas.toDataURL('image/png');
-				// 	this.downPng(base64Image)
-				// })
 				this.data.orginal = !this.data.orginal;
 			},
 			downPng(base64Image) {

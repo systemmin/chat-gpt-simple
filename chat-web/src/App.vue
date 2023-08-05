@@ -480,19 +480,13 @@
 		/* 轨道颜色 */
 	}
 
-	::-webkit-scrollbar-thumb {
-		background-color: #bbbbbb;
-		/* 滑块颜色 */
-		border-radius: 5px;
-		/* 滑块圆角 */
-	}
-
 	code {
 		border-radius: 0.3125rem;
 	}
-
+    
 	#app {
-		font-family: Avenir, Helvetica, Arial, sans-serif;
+		font-size: 1em;
+		font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
 		-webkit-font-smoothing: antialiased;
 		-moz-osx-font-smoothing: grayscale;
 		color: #2c3e50;
