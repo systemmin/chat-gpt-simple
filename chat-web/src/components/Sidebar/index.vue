@@ -3,7 +3,7 @@
 		<!-- 顶部 -->
 		<a-affix :offset-top="top">
 			<div class="session">
-				<div class="create-session cursor-p">
+				<div class="create-session cursor-p" @click="onNewChat()">
 					<plus theme="outline" size="24" fill="#fff" :strokeWidth="2" />
 					<div>新会话</div>
 				</div>
@@ -25,16 +25,16 @@
 			</div>
 		</a-affix>
 		<div class="center">
-			<div class="record" v-for="(item,i) in 50" :style="{backgroundColor:index===i?'#343541':''}"
-				@click="handleRecord(i)">
+			<div class="record" v-for="(item,i) in historys" :style="{backgroundColor:index===i?'#343541':''}"
+				@click="onRecord(i)">
 				<div style="display: flex;">
 					<comment theme="outline" size="18" fill="#a7a7ae" :strokeWidth="4" />
 				</div>
-				<div>系统配置系统配置系统配置系统配置</div>
+				<div>{{item.title}}</div>
 				<!-- <div><a-input style="background-color: #050509;color: white;"></a-input></div> -->
 				<div class="tool" v-if="index===i">
 					<pencil theme="outline" size="18" fill="#a7a7ae" :strokeWidth="4" />
-					<delete-four theme="outline" size="18" fill="#d8171a" :strokeWidth="4" />
+					<delete-four @click="onDelete(item.pid)" theme="outline" size="18" fill="#d8171a" :strokeWidth="4" />
 				</div>
 			</div>
 		</div>
@@ -68,25 +68,28 @@
 			ExpandLeft
 		},
 		props: {
-
+			historys: {
+				type: Array
+			},
+			index: {
+				type: Number,
+				default: 0
+			}
 		},
 		data() {
 			return {
 				text: '',
 				top: 0,
 				active: false,
-				index: 0,
 			}
 		},
 		methods: {
-			handleRecord(index) {
-				this.index = index;
-			},
+
 			onCollapse() {
 				document.getElementById('left').style.display = 'none';
 				document.getElementById('bottom-send').style.width = '100vw';
-				document.getElementById('sys-config').style.display='none';
-				document.getElementById('tips-text').style.display='none';
+				document.getElementById('sys-config').style.display = 'none';
+				document.getElementById('tips-text').style.display = 'none';
 				this.$emit('collapse', false)
 			},
 			onSetting() {
@@ -106,7 +109,17 @@
 					sysConfigEl.style.display = 'block';
 				}
 				this.$emit('onExample', true);
+			},
+			onNewChat() {
+				this.$emit('onChat', true);
+			},
+			onRecord(index) {
+				this.$emit('onDetail', index);
+			},
+			onDelete(pid){
+				this.$emit('onDelete', pid);
 			}
+			
 		}
 
 	}

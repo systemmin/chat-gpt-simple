@@ -2,15 +2,17 @@
 	<div id="app">
 		<div id="main">
 			<div id="left">
-				<sidebar @collapse="(e)=>show=!e"></sidebar>
+				<sidebar :historys="historys" :index="sideIndex" @onChat="handleChat" @onDelete="handleDelete"
+					@onDetail="handleDetail" @collapse="(e)=>show=!e">
+				</sidebar>
 			</div>
 			<div id="right">
-				<message :data="item" v-for="(item,i) in history" :key="i"></message>
+				<message :data="item" v-for="(item,i) in speaks" :key="i"></message>
 				<div style="height: 6.25rem;border-top: 1px solid #dededf;"></div>
 				<send-text :prompt="prompt" @send="onSend"></send-text>
 			</div>
 			<!-- 系统配置组件 -->
-			<sys-config></sys-config>
+			<sys-config @onModel="handleMolde"></sys-config>
 			<!-- 提示语句 -->
 			<tips-text @tips="tips"></tips-text>
 			<!-- 折叠按钮 -->
@@ -41,15 +43,17 @@
 		SendOne,
 		ExpandLeft
 	} from '@icon-park/vue';
+	import {
+		eventsUrl,
+		chatUrl
+	} from '@/api/config'
+	// see 事件解析器
 	const sourceParser = require('eventsource-parser');
-	console.log(sourceParser)
-
-	// 控制台警告处理
+	// md=>html 控制台警告处理
 	marked.options({
 		headerIds: false,
 		mangle: false
 	})
-	console.log(marked)
 	export default {
 		name: 'App',
 		components: {
@@ -64,64 +68,157 @@
 		data() {
 			return {
 				show: false, // 侧边栏状态
-				apiType: API_TYPE_WEB,
+				apiType: API_TYPE_WEB, // 当前聊天类型
 				prompt: '', // 提词
 				tokenMsg: {
 					id: '',
-					parent_message_id: '67dc467d-64df-4037-b106-2941b5d7c3f3', // 父级消息id
-					conversation_id: '25923008-82a9-49cd-a423-98f234c7173c', // 会话 id
+					parent_message_id: '', // 父级消息id
+					conversation_id: '', // 会话 id
 					content: "", // 消息内容
 					role: 'user',
-					orginal: true,
 				},
-				pid: '08a177c3-d507-4d55-a93d-e0b46d8a857a', // 当前会话id
-				content: '',
+				pid: '', // 当前会话id
 				receive: {}, // 临时接收对象
-				history: [], // 聊天记录列表
+				speaks: [], // 聊天记录列表
 				firstchunk: false, // 标识接收消息
+				historys: [], // 历史记录
+				sideIndex: 0, // 侧边当前激活状态下标
+				content: '', // 字符追加
 			}
 		},
 		created() {
 			this.init();
 		},
 		methods: {
+			/**
+			 * @description 初始化，加载本地缓存数据
+			 * @author Mr.FANG
+			 * 
+			 */
 			init() {
+				// 加载本地记录
 				const history = localStorage.getItem('history');
 				const historys = history ? JSON.parse(history) : [];
-
-				const list = historys[0].list;
-				this.handleMessage(list);
+				this.historys = historys.reverse();
+				this.renderHistory();
 			},
-			// 渲染聊天记录
+			/**
+			 * @description 聊天模式
+			 * @author Mr.FANG
+			 * 
+			 */
+			handleMolde(code) {
+				this.apiType = code;
+			},
+			/**
+			 * 
+			 * @description 渲染聊天记录
+			 * @author Mr.FANG
+			 * 
+			 */
 			renderHistory() {
+				const history = this.historys[this.sideIndex];
+				if (!history) {
+					return;
+				}
+				const list = history.list;
+				this.pid = history.pid;
 				for (const d of list) {
-					if (!d.html) {
+					if (!d.html && d.content) {
 						d.html = marked.parse(d.content);
 					}
 					d.orginal = true;
 				}
-				this.history = list;
+				this.speaks = list;
 				// 更新会话 id 父级聊天记录
-				if (API_TYPE_WEB === this.apiType) {
+				if (list.length) {
 					const {
 						parent_id,
 						conversation_id
 					} = list.at(-1); // 返回最后一条记录
-					this.tokenMsg = Object.assign({
-						parent_message_id: parent_id,
-						conversation_id
-					}, this.tokenMsg);
+					if (API_TYPE_WEB === this.apiType) {
+						this.tokenMsg = Object.assign({
+							parent_message_id: parent_id,
+							conversation_id
+						}, this.tokenMsg);
+					}
 				}
 			},
+
+			/**
+			 * 
+			 * @description 新会话
+			 * @author Mr.FANG
+			 * 
+			 */
+			handleChat() {
+				const pid = this.generateUUID();
+				this.pid = pid;
+				const history = localStorage.getItem('history');
+				const list = history ? JSON.parse(history) : [];
+				const chat = {
+					title: '新会话',
+					pid: pid,
+					type: this.apiType,
+					list: []
+				}
+				list.push(chat);
+				localStorage.setItem('history', JSON.stringify(list));
+				//清空会话
+				this.tokenMsg.parent_message_id = '';
+				this.tokenMsg.conversation_id = '';
+				this.init();
+			},
+			/**
+			 * 
+			 * @description 会话详情列表
+			 * @author Mr.FANG
+			 * 
+			 */
+			handleDetail(index) {
+				this.sideIndex = index;
+				this.renderHistory();
+			},
+
+			/**
+			 * 
+			 * @description 删除会话
+			 * @author Mr.FANG
+			 * 
+			 * @param {String} pid 会话 id
+			 */
+			handleDelete(pid) {
+				this.delStroe(pid);
+				this.sideIndex = 0;
+				this.init();
+			},
+
+			/**
+			 * 
+			 * @description 删除会话
+			 * @author Mr.FANG
+			 */
 			handleCollapse(e) {
 				document.getElementById('left').style.display = 'block';
 				document.getElementById('bottom-send').style.width = 'calc(100% - 15.625rem)';
 				this.show = false;
 			},
+
+			/**
+			 * @description 提示词
+			 * @author Mr.FANG
+			 * 
+			 * @param {String} text 提示词返回内容
+			 */
 			tips(text) {
 				this.prompt = text.prompt;
-				console.log(text)
 			},
+
+			/**
+			 * @description UUID
+			 * @author Mr.FANG
+			 * 
+			 */
 			generateUUID() {
 				return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
 					var r = Math.random() * 16 | 0,
@@ -129,22 +226,71 @@
 					return v.toString(16);
 				});
 			},
+			/**
+			 * @description 发送消息按钮
+			 * 1、通过 token 凭证发送聊天消息
+			 * 2、通过 key 密钥发送聊天消息
+			 * 3、补全功能，微调模型后，通过接口测试模型
+			 * @author Mr.FANG
+			 * 
+			 * @param {String} text 消息内容
+			 */
 			onSend(text) {
 				const tokenMsg = this.tokenMsg;
 				tokenMsg.content = text;
-				let _that = this;
+				tokenMsg.created = Date.now();
 				// 1、请求参数
 				const options = {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json'
-					},
-					body: JSON.stringify(tokenMsg)
+					}
 				};
 				// 2、保存用户发送信息
 				this.saveRecod(tokenMsg);
 				tokenMsg.html = marked.parse(text);
-				this.history.push(tokenMsg);
+				this.speaks.push(tokenMsg);
+
+				// 不同类型参数不同
+				const sys = localStorage.getItem('sysConfig')
+				switch (this.apiType) {
+					case API_TYPE_WEB:
+						const last = this.speaks?.filter(item=>{return item.conversation_id})[0];
+						if (last) { // 理解上下文
+							tokenMsg.parent_message_id = last.parent_id
+							tokenMsg.conversation_id = last.conversation_id
+						}
+						options.body = JSON.stringify(tokenMsg);
+						break;
+					case API_TYPE_CHAT:
+						if (!sys) {
+							this.$message.warn('请先保存系统配置');
+							return;
+						}
+						const messages = this.speaks.map(item => {
+							return {
+								role: item.role,
+								content: item.content
+							}
+						})
+						options.body = JSON.stringify({
+							messages,
+							config: JSON.parse(sys)
+						});
+						break;
+					case API_TYPE_COM:
+						if (!sys) {
+							this.$message.warn('请先保存系统配置');
+							return;
+						}
+						options.body = JSON.stringify({
+							prompt: text,
+							config: JSON.parse(sys)
+						});
+						break;
+				}
+
+
 				// 3、创建 stream 解析
 				const parser = sourceParser.createParser((event) => {
 					if (event.type === "event") {
@@ -152,8 +298,8 @@
 					}
 				})
 				// 4、、发起请求
-				// fetch('http://localhost:8080/events/v2', options)
-				fetch('http://localhost:8080/chat/token', options)
+				const url = this.apiType === API_TYPE_WEB ? chatUrl : eventsUrl;
+				fetch(url, options)
 					.then(response => {
 						console.log(response)
 						const reader = response.body.getReader();
@@ -181,15 +327,25 @@
 			},
 			/**
 			 * @description 处理消息事件
+			 * @author Mr.FANG
+			 * 
 			 * @param {Object} chunk 事件消息
 			 */
 			handleMessage(chunk) {
 				console.log(chunk)
+				// 异常消息
+				// if (chunk.includes('error') && chunk.includes('message')) {
+				if (!chunk.includes('content:') && !chunk.includes('role') && !chunk.includes('DONE')) {
+					this.$message.error(chunk);
+					console.error('呀！~异常了', chunk)
+					return;
+				}
 				try {
 					// 1、结束标识
 					if (chunk.includes('DONE')) {
 						console.log('结束')
 						const receive = this.receive;
+						this.content = '';
 						if (receive && API_TYPE_WEB === this.apiType) {
 							const {
 								parent_id,
@@ -199,29 +355,33 @@
 								parent_message_id: parent_id,
 								conversation_id
 							}, this.tokenMsg);
-							this.saveRecod(this.receive);
 						}
+						this.saveRecod(this.receive);
 					} else {
 						//2、正常接收数据
 						const data = JSON.parse(chunk);
 						data.role = "assistant";
-						data.html = marked.parse(data.content);
 						data.orginal = true;
 						// 处理消息，将最新一条数据 push 到数组结尾
 						if (!this.firstchunk) {
-							this.history.push(data);
+							this.speaks.push(data);
 							this.firstchunk = true;
-						} else { // 更新最新消息
-							this.$set(this.history, this.history.length - 1, data);
+						} else { // token 返回数据
+							if (API_TYPE_WEB === this.apiType) {
+								data.html = marked.parse(data.content);
+								this.$set(this.speaks, this.speaks.length - 1, data);
+							} else {
+								// 通过 api key 请求返回的数据处理
+								let content = this.content;
+								content += data.content ? data.content : '';
+								data.html = marked.parse(content);
+								data.content = content;
+								this.$set(this.speaks, this.speaks.length - 1, data);
+								this.content = content;
+							}
 						}
-						// token
-						this.content = data.content;
-						// 补全
-						// this.content = data.message.content.parts[0];
-
+						// 当前正在聊天中返回的内容
 						this.receive = data;
-						// 接口
-						// _that.content += data.choices[0].delta.content;
 					}
 				} catch (err) {
 					this.$message.error(err.toString())
@@ -231,41 +391,63 @@
 
 			/**
 			 * @description 对话记录保存到本地缓存
+			 * @author Mr.FANG
+			 * 
 			 * @param {Object} message
 			 */
 			saveRecod(message) {
 				let pid = this.pid ? this.pid : this.generateUUID();
 				this.pid = pid;
-				const history = localStorage.getItem('history');
-				const list = history ? JSON.parse(history) : [];
+				const list = this.getStroe()
 				if (list.length === 0) {
 					const data = {
 						title: message.content,
 						pid: pid,
-						list: [message]
+						type: this.apiType,
+						list: [message],
 					}
-					localStorage.setItem('history', JSON.stringify([data]))
+					list.push(data);
+					this.setStroe(list)
 				} else {
-					let currentData = undefined;
+					let chat = undefined;
 					for (var i = 0; i < list.length; i++) {
 						let item = list[i];
 						if (item.pid === pid) {
-							currentData = item;
+							// 更新会话标题
+							if (item.list.length == 0) {
+								item.title = message.content;
+							}
+							chat = item;
+							item.list.push(message);
+							this.setStroe(list)
 							continue;
 						}
 					}
-					if (currentData) {
-						currentData.list.push(message)
-						localStorage.setItem('history', JSON.stringify(list))
-					} else {
+					// 不存在添加新会话
+					if (!chat) {
 						const data = {
 							title: message.content,
 							pid: pid,
+							type: this.apiType,
 							list: [message]
 						}
 						list.push(data);
-						localStorage.setItem('history', JSON.stringify(list))
+						this.setStroe(list)
 					}
+				}
+			},
+			getStroe() {
+				const object = localStorage.getItem('history');
+				return object ? JSON.parse(object) : [];
+			},
+			setStroe(value) {
+				localStorage.setItem('history', JSON.stringify(value))
+			},
+			delStroe(pid) {
+				const list = this.getStroe()
+				if (list.length) {
+					const values = list.filter(item => item.pid !== pid);
+					this.setStroe(values)
 				}
 			}
 		}
