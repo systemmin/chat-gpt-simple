@@ -4,6 +4,8 @@ const express = require('express');
 const fetch = require('node-fetch');
 const Result = require("./result.js");
 const sourceParser = require('eventsource-parser');
+const c = require('ansi-colors');
+
 const {
 	Console
 } = require('node:console');
@@ -33,6 +35,15 @@ const API_KEY = process.env.API_KEY;
 const DEBUG = process.env.DEBUG === 'true'
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
+if (!API_KEY && !ACCESS_TOKEN) {
+	// throw new Error("API 密钥与 ACCESS_TOKEN 同时为空");
+	console.log(c.red('===> API_KEY 密钥与 ACCESS_TOKEN 同时为空'));
+	process.exit(0)
+}
+if (ACCESS_TOKEN && !API_WEB_URL) {
+	console.log(c.red('===> API_WEB_URL 为空'));
+	process.exit(0)
+}
 // 将静态资源目录设置为 publicPath
 app.use(express.static('public'));
 
@@ -47,6 +58,14 @@ app.all('*', function(req, res, next) {
 	res.header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
 	next();
 })
+
+/**
+ * 全局异常
+ */
+process.on('uncaughtException', (err) => {
+	console.error('未捕获的异常:', err);
+});
+
 
 
 /**
@@ -151,7 +170,6 @@ app.post('/events/', (req, res) => {
  * @description 获取所有模型
  */
 app.get('/models', async (req, res) => {
-	res.setHeader('Access-Control-Allow-Origin', "*")
 	const options = {
 		method: 'GET',
 		headers: {
@@ -163,8 +181,15 @@ app.get('/models', async (req, res) => {
 	const exits = fs.existsSync(models_path)
 	if (!exits) {
 		const data = await request(API_MODEL_URL, options);
-		res.json(data.stringify());
-		fs.writeFile(models_path)
+		const json = data.stringify();
+		res.json(json);
+		fs.writeFile(models_path, JSON.stringify(json), (err) => {
+			if (err) {
+				console.error('保存失败：', err);
+			} else {
+				console.log('保存成功！');
+			}
+		});
 	} else {
 		//  加载本地缓存数据
 		const data = await fs.readFileSync(models_path);
@@ -335,5 +360,5 @@ const request = async (url, options, parser) => {
 }
 
 app.listen(PORT, () => {
-	console.log(`Server is running at http://localhost:${PORT}`);
+	console.log(c.green(`Server is running at http://localhost:${PORT}`));
 });

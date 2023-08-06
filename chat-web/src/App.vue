@@ -461,11 +461,11 @@
 	}
 
 	/* 火狐 */
-	scrollbar {
+	/* scrollbar {
 		color: #bbbbbb #202123;
 		width: thin;
 
-	}
+	} */
 
 	scrollbar-thumb {
 		border-radius: 5px;
