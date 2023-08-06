@@ -1,11 +1,11 @@
 {
   "name": "chat-gpt-simple",
   "version": "1.0.0",
-  "description": "简易版chat-gpt，技术实现node+html+css+js，text/event-stream流接入，便于大家理解底层原理",
+  "description": "简易版chat-gpt",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node ./main.js"
+    "dev": "node ./src/main.js"
   },
   "keywords": [
     "Chat GPT",

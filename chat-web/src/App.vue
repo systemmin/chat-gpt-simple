@@ -9,14 +9,14 @@
 			<div id="right">
 				<message :data="item" v-for="(item,i) in speaks" :key="i"></message>
 				<div style="height: 6.25rem;border-top: 1px solid #dededf;"></div>
-				<send-text :prompt="prompt" @send="onSend"></send-text>
+				<send-text :prompt="prompt" :sendStatus="sendStatus" @send="onSend"></send-text>
 			</div>
 			<!-- 系统配置组件 -->
 			<sys-config @onModel="handleMolde"></sys-config>
 			<!-- 提示语句 -->
 			<tips-text @tips="tips"></tips-text>
 			<!-- 折叠按钮 -->
-			<div v-if="show" style="position: fixed;top: 20px;left: 20px;cursor: pointer;" @click="handleCollapse()">
+			<div id="fixedSide" @click="handleCollapse()">
 				<expand-left theme="outline" size="24" fill="#000" :strokeWidth="4" />
 			</div>
 		</div>
@@ -84,6 +84,7 @@
 				historys: [], // 历史记录
 				sideIndex: 0, // 侧边当前激活状态下标
 				content: '', // 字符追加
+				sendStatus: false, // 控制发送按钮状态
 			}
 		},
 		created() {
@@ -127,7 +128,6 @@
 					if (!d.html && d.content) {
 						d.html = marked.parse(d.content);
 					}
-					d.orginal = true;
 				}
 				this.speaks = list;
 				// 更新会话 id 父级聊天记录
@@ -236,6 +236,7 @@
 			 * @param {String} text 消息内容
 			 */
 			onSend(text) {
+				this.sendStatus = true;
 				const tokenMsg = this.tokenMsg;
 				tokenMsg.content = text;
 				tokenMsg.created = Date.now();
@@ -246,6 +247,10 @@
 						'Content-Type': 'application/json'
 					}
 				};
+				// setTimeout(()=>{
+				// 	this.sendStatus=false;
+				// },3000)
+				// return;
 				// 2、保存用户发送信息
 				this.saveRecod(tokenMsg);
 				tokenMsg.html = marked.parse(text);
@@ -255,7 +260,9 @@
 				const sys = localStorage.getItem('sysConfig')
 				switch (this.apiType) {
 					case API_TYPE_WEB:
-						const last = this.speaks?.filter(item=>{return item.conversation_id})[0];
+						const last = this.speaks?.filter(item => {
+							return item.conversation_id
+						})[0];
 						if (last) { // 理解上下文
 							tokenMsg.parent_message_id = last.parent_id
 							tokenMsg.conversation_id = last.conversation_id
@@ -299,31 +306,38 @@
 				})
 				// 4、、发起请求
 				const url = this.apiType === API_TYPE_WEB ? chatUrl : eventsUrl;
-				fetch(url, options)
-					.then(response => {
-						console.log(response)
-						const reader = response.body.getReader();
-						// 将响应解析为 text/event-stream 格式
-						const decoder = new TextDecoder('utf-8');
+				try {
+					fetch(url, options)
+						.then(response => {
+							this.sendStatus = false;
+							const reader = response.body.getReader();
+							// 将响应解析为 text/event-stream 格式
+							const decoder = new TextDecoder('utf-8');
 
-						function readStream() {
-							return reader.read()
-								.then(({
-									done,
-									value
-								}) => {
-									if (!done) {
-										const chunk = decoder.decode(value);
-										parser.feed(chunk);
-										return readStream();
-									}
-								});
-						}
-						return readStream();
-					})
-					.catch(error => {
-						console.error('Error occurred while fetching event stream:', error);
-					});
+							function readStream() {
+								return reader.read()
+									.then(({
+										done,
+										value
+									}) => {
+										if (!done) {
+											const chunk = decoder.decode(value);
+											parser.feed(chunk);
+											return readStream();
+										}
+									});
+							}
+							return readStream();
+						})
+						.catch(error => {
+							this.sendStatus = false;
+							this.$message.error('服端异常')
+							console.error('Error occurred while fetching event stream:', error);
+						});
+				} catch (e) {
+					this.sendStatus = false;
+					console.error(e);
+				}
 			},
 			/**
 			 * @description 处理消息事件
@@ -361,7 +375,6 @@
 						//2、正常接收数据
 						const data = JSON.parse(chunk);
 						data.role = "assistant";
-						data.orginal = true;
 						// 处理消息，将最新一条数据 push 到数组结尾
 						if (!this.firstchunk) {
 							this.speaks.push(data);
@@ -455,72 +468,5 @@
 </script>
 
 <style>
-	* {
-		padding: 0px;
-		margin: 0px;
-	}
-
-	/* 火狐 */
-	/* scrollbar {
-		color: #bbbbbb #202123;
-		width: thin;
-
-	} */
-
-	scrollbar-thumb {
-		border-radius: 5px;
-	}
-
-	::-webkit-scrollbar {
-		width: 7px;
-	}
-
-	::-webkit-scrollbar-track {
-		background-color: #ffffff;
-		/* 轨道颜色 */
-	}
-
-	code {
-		border-radius: 0.3125rem;
-	}
-    
-	#app {
-		font-size: 1em;
-		font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-		-webkit-font-smoothing: antialiased;
-		-moz-osx-font-smoothing: grayscale;
-		color: #2c3e50;
-		/* 定义滚动条的样式 */
-		scrollbar-width: thin;
-		/* 滚动条宽度 */
-		scrollbar-color: #bbbbbb #ffffff;
-		/* 滚动条颜色(轨道颜色 滑块颜色) */
-
-		/* Firefox浏览��� */
-		scrollbar-width: thin;
-		/* 滚动条宽度 */
-		scrollbar-color: #bbbbbb #ffffff;
-		/* 滚动条颜色(轨道颜色 滑块颜色) */
-	}
-
-	#main {
-		display: flex;
-	}
-
-	#left {
-		flex: 0 0 15.625rem;
-		height: 100vh;
-		background-color: #202123;
-		color: #ececf1;
-		-moz-user-select: none;
-		-webkit-user-select: none;
-		user-select: none;
-	}
-
-	#right {
-		flex: 1;
-		height: 100vh;
-		background-color: #ffffff;
-		overflow: auto;
-	}
+	@import url("assets/css/main.css");
 </style>

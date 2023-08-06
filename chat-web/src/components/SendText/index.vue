@@ -3,9 +3,12 @@
 	<div id="bottom-send">
 		<div class="input-textarea">
 			<a-textarea id="ttttt" v-model="text" ref="refContent" @pressEnter="pressEnter"
-				:autoSize="{ minRows: 1, maxRows: 6 }" placeholder="请输入您的问题？Enter 发送消息、Shift+Enter 换行"></a-textarea>
-			<div class="send-btn" @click="send()" v-if="text.length>0">
+				:autoSize="{ minRows: 1, maxRows: 6 }" placeholder="Enter 发送消息、Shift+Enter 换行"></a-textarea>
+			<div class="send-btn" @click="send()" v-if="text.length && !sendStatus">
 				<send-one theme="outline" size="24" fill="#fff" :strokeWidth="4" />
+			</div>
+			<div v-else-if="sendStatus">
+				<a-icon type="sync" spin />
 			</div>
 		</div>
 
@@ -24,6 +27,10 @@
 		props: {
 			prompt: {
 				type: String,
+			},
+			sendStatus: {
+				type: Boolean,
+				default: false,
 			}
 		},
 		watch: {
@@ -31,6 +38,10 @@
 			prompt(val, oldVal) {
 				this.text = val;
 			},
+			sendStatus(val, oldVal){
+				console.log(val)
+				console.log(oldVal)
+			}
 		},
 		data() {
 			return {
@@ -53,45 +64,12 @@
 				if (!this.text) {
 					return;
 				}
+				if(this.sendStatus){
+					this.$message.warning('不要急躁哦！服务器正在处理了')
+					return;
+				}
 				this.$emit('send', this.text);
-				this.text=''
-
-				// const options = {
-				// 	method: 'POST',
-				// 	headers: {
-				// 		'Content-Type': 'application/json'
-				// 	},
-				// 	body: JSON.stringify(this.tokenMsg)
-				// };
-				// fetch('http://localhost:8080/chat/token', options)
-				// 	.then(response => {
-				// 		console.log(response)
-				// 		const reader = response.body.getReader();
-				// 		// const decoder = new TextDecoder();
-				// 		// 将响应解析为 text/event-stream 格式
-				// 		const decoder = new TextDecoder('utf-8');
-
-				// 		function readStream() {
-				// 			return reader.read()
-				// 				.then(({
-				// 					done,
-				// 					value
-				// 				}) => {
-				// 					if (!done) {
-				// 						const chunk = decoder.decode(value);
-				// 						console.log('响应结果：', chunk)
-				// 						return readStream();
-				// 					}
-				// 				});
-				// 		}
-				// 		return readStream();
-				// 	})
-				// 	.catch(error => {
-				// 		console.error('Error occurred while fetching event stream:', error);
-				// 	});
-				// const response = await fetch('http://localhost:8080/chat/token',{method:'POST'})
-				// const data = await response.json();
-				// console.log(data)
+				this.text = ''
 			}
 		}
 	}

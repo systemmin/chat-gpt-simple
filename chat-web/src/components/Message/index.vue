@@ -6,13 +6,13 @@
 				<span class="icon"
 					:style="{'background-color':data.role==='user'?uIconColor:aIconColor}">{{data.role==='user'?'U':'S'}}</span>
 			</div>
-			<div class="message-body" v-highlight v-html="data.html" v-if="data.orginal"></div>
 			<!-- 显示原文 -->
-			<div class="message-body" v-else>
+			<div class="message-body"  v-if="data.orginal && data.role!=='user'">
 				<pre
 					style="white-space: break-spaces;padding: 10px;border: 1px solid #ececf1;border-radius: 5px;">{{data.content}}
 				</pre>
 			</div>
+			<div class="message-body" v-highlight v-html="data.html" v-else></div>
 
 			<!-- 按钮 -->
 			<div class="message-tool">

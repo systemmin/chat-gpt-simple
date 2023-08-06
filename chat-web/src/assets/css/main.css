@@ -1,0 +1,115 @@
+* {
+	padding: 0px;
+	margin: 0px;
+}
+
+/* Webkit-based browsers (Chrome, Safari, etc.) */
+::-webkit-scrollbar {
+	width: 7px;
+	/* Width of the scrollbar */
+
+}
+
+/* Track (background of the scrollbar) */
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+}
+
+/* Handle (the draggable scrolling element) */
+::-webkit-scrollbar-thumb {
+	background: #bbbbbb;
+	border-radius: 5px;
+}
+
+code {
+	border-radius: 0.3125rem;
+}
+
+#app {
+	font-size: 1em;
+	font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+	color: #2c3e50;
+}
+
+#main {
+	display: flex;
+}
+
+#left {
+	flex: 0 0 15.625rem;
+	height: 100vh;
+	background-color: #202123;
+	color: #ececf1;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
+	z-index: 8;
+}
+
+#right {
+	flex: 1;
+	height: 100vh;
+	background-color: #ffffff;
+	overflow: auto;
+}
+
+#fixedSide {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	background-color: transparent;
+	padding: 0.625rem;
+}
+
+/* 此样式将在移动设备上隐藏元素 */
+@media screen and (max-width: 768px) {
+	#tips-text {
+		position: fixed;
+		left: 50% !important;
+		right: 0px !important;
+		z-index: 9;
+		width: 50%  !important;
+	}
+
+	#left {
+		display: none;
+		position: fixed;
+		z-index: 999;
+		width: 50%;
+	}
+
+	#right {
+		padding-top: 2.8125rem;
+	}
+
+	#fixedSide {
+		width: 100%;
+		display: block !important;
+		border-bottom: 0.0225rem solid silver;
+		background-color: white;
+	}
+
+	#input-textarea {
+		max-width: 24rem
+	}
+
+	#bottom-send {
+		width: 100% !important;
+	}
+
+	#sys-config {
+		width: 50% !important;
+		z-index: 10;
+	}
+	.message{
+		gap: 0.3125rem;
+	}
+	.message-body{
+		width: 85% !important;
+	}
+	.message-tool{
+		display: none !important;
+	}
+}

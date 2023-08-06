@@ -159,7 +159,6 @@
 						this.$message.error(res.message)
 					}
 				} catch (e) {
-					console.log(e)
 					this.$message.error(e.toString())
 				}
 			},
@@ -202,7 +201,7 @@
 		height: 100vh;
 		border-left: 1px solid #dededf;
 		padding: 10px;
-		display: block;
+		display: none;
 	}
 
 	>>>.ant-form-item-label>label {

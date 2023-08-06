@@ -11,13 +11,13 @@
 					<expand-right theme="outline" size="24" fill="#fff" :strokeWidth="4" />
 				</div>
 			</div>
-			<div class="session" style="background-color:#050509;" @click="onExample()">
+			<div class="session" id="example" style="background-color:#050509;" @click="onExample()">
 				<div class="create-session cursor-p">
 					<text-message theme="outline" size="24" fill="#fff" :strokeWidth="4" />
 					<div>示例语句</div>
 				</div>
 			</div>
-			<div class="session" style="background-color:#050509;" @click="onSetting()">
+			<div class="session" id="setting" style="background-color:#050509;" @click="onSetting()">
 				<div class="create-session cursor-p">
 					<setting theme="outline" size="24" fill="#fff" :strokeWidth="4" />
 					<div>系统配置</div>
@@ -28,7 +28,7 @@
 			<div class="record" v-for="(item,i) in historys" :style="{backgroundColor:index===i?'#343541':''}"
 				@click="onRecord(i)">
 				<div style="display: flex;">
-					<comment theme="outline" size="18" fill="#a7a7ae" :strokeWidth="4" />
+					<comment theme="outline" size="18" fill="#fff" :strokeWidth="5" />
 				</div>
 				<div>{{item.title}}</div>
 				<!-- <div><a-input style="background-color: #050509;color: white;"></a-input></div> -->
@@ -94,7 +94,7 @@
 			},
 			onSetting() {
 				const sysConfigEl = document.getElementById('sys-config');
-				if (!sysConfigEl.style.display || sysConfigEl.style.display === 'block') {
+				if (sysConfigEl.style.display === 'block') {
 					sysConfigEl.style.display = 'none';
 				} else {
 					sysConfigEl.style.display = 'block';
@@ -103,7 +103,7 @@
 			},
 			onExample() {
 				const sysConfigEl = document.getElementById('tips-text');
-				if (!sysConfigEl.style.display || sysConfigEl.style.display === 'block') {
+				if (sysConfigEl.style.display === 'block') {
 					sysConfigEl.style.display = 'none';
 				} else {
 					sysConfigEl.style.display = 'block';

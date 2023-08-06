@@ -8,12 +8,6 @@
 - `express`：提供服务
 - `node-fetch`：向 openai 发起请求
 
-## 流程
-
-
-
-
-
 ## 实现功能
 
 - [x] 聊天
@@ -132,10 +126,14 @@ node >= 18
 ## 参考
 
 - 在此鸣谢 [@transitive-bullshit ](https://github.com/transitive-bullshit/)，[@pengzhile](https://github.com/pengzhile) ，[Chanzhaoyu](https://github.com/Chanzhaoyu) ，[PlexPt](https://github.com/PlexPt) 
+
 - 参考仓库
-  -接口 https://github.com/transitive-bullshit/chatgpt-api
-  -前端页面 https://github.com/Chanzhaoyu/chatgpt-web
-  -提示词 https://github.com/PlexPt/awesome-chatgpt-prompts-zh
+
+  - 接口 https://github.com/transitive-bullshit/chatgpt-api
+
+
+  - 前端页面 https://github.com/Chanzhaoyu/chatgpt-web
+  - 提示词 https://github.com/PlexPt/awesome-chatgpt-prompts-zh
 
 ## License
 
