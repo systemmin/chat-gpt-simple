@@ -98,15 +98,15 @@ ACCESS_TOKEN=
 
 ## 演示
 
-![](docs\1.png)
+![](https://raw.githubusercontent.com/systemmin/chat-gpt-simple/main/docs/1.png)
 
-![](docs\2.png)
+![](https://raw.githubusercontent.com/systemmin/chat-gpt-simple/main/docs/2.png)
 
-![](docs\3.png)
+![](https://raw.githubusercontent.com/systemmin/chat-gpt-simple/main/docs/3.png)
 
-![](docs\4.png)
+![](https://raw.githubusercontent.com/systemmin/chat-gpt-simple/main/docs/4.png)
 
-![](docs\5.png)
+![](https://raw.githubusercontent.com/systemmin/chat-gpt-simple/main/docs/5.png)
 
 
 ## 安装
