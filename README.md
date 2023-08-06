@@ -98,7 +98,7 @@ ACCESS_TOKEN=
 
 ## 演示
 
-![](docs\1.png)
+![]([docs\1.png](https://github.com/systemmin/chat-gpt-simple/blob/main/docs/1.png))
 
 ![](docs\2.png)
 
