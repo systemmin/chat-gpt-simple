@@ -133,9 +133,9 @@ node >= 18
 
 - 在此鸣谢 [@transitive-bullshit ](https://github.com/transitive-bullshit/)，[@pengzhile](https://github.com/pengzhile) ，[Chanzhaoyu](https://github.com/Chanzhaoyu) ，[PlexPt](https://github.com/PlexPt) 
 - 参考仓库
-  - https://github.com/transitive-bullshit/chatgpt-api（接口）
-  - https://github.com/Chanzhaoyu/chatgpt-web（前端页面）
-  - https://github.com/PlexPt/awesome-chatgpt-prompts-zh（提示词）
+  -接口 https://github.com/transitive-bullshit/chatgpt-api
+  -前端页面 https://github.com/Chanzhaoyu/chatgpt-web
+  -提示词 https://github.com/PlexPt/awesome-chatgpt-prompts-zh
 
 ## License
 
