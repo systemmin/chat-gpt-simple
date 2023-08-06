@@ -240,6 +240,7 @@
 				const tokenMsg = this.tokenMsg;
 				tokenMsg.content = text;
 				tokenMsg.created = Date.now();
+				this.prompt='';
 				// 1、请求参数
 				const options = {
 					method: 'POST',
@@ -309,7 +310,6 @@
 				try {
 					fetch(url, options)
 						.then(response => {
-							this.sendStatus = false;
 							const reader = response.body.getReader();
 							// 将响应解析为 text/event-stream 格式
 							const decoder = new TextDecoder('utf-8');
@@ -351,6 +351,7 @@
 				// if (chunk.includes('error') && chunk.includes('message')) {
 				if (!chunk.includes('content:') && !chunk.includes('role') && !chunk.includes('DONE')) {
 					this.$message.error(chunk);
+					this.sendStatus = false;
 					console.error('呀！~异常了', chunk)
 					return;
 				}
@@ -358,6 +359,7 @@
 					// 1、结束标识
 					if (chunk.includes('DONE')) {
 						console.log('结束')
+						this.sendStatus = false;
 						const receive = this.receive;
 						this.content = '';
 						if (receive && API_TYPE_WEB === this.apiType) {
@@ -376,9 +378,9 @@
 						const data = JSON.parse(chunk);
 						data.role = "assistant";
 						// 处理消息，将最新一条数据 push 到数组结尾
-						if (!this.firstchunk) {
+						if (this.speaks.at(-1).role!=='assistant') {
 							this.speaks.push(data);
-							this.firstchunk = true;
+							// this.firstchunk = true;
 						} else { // token 返回数据
 							if (API_TYPE_WEB === this.apiType) {
 								data.html = marked.parse(data.content);
@@ -397,6 +399,7 @@
 						this.receive = data;
 					}
 				} catch (err) {
+					this.sendStatus = false;
 					this.$message.error(err.toString())
 					console.log(err);
 				}

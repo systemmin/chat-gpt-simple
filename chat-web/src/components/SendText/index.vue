@@ -69,7 +69,7 @@
 					return;
 				}
 				this.$emit('send', this.text);
-				this.text = ''
+				// this.text = ''
 			}
 		}
 	}
